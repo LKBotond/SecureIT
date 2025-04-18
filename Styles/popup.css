@@ -1,0 +1,26 @@
+html{
+    background-color: #F0F0f0;
+}
+input{
+    width:90%;
+    margin:0.2rem;
+    padding:0.2rem;
+    border-radius: 0.4rem;
+    box-shadow: 0.1rem 0.1rem 0.1rem #888888bf;
+}
+button{
+    margin:0.2rem;
+    padding: 0.2rem;
+    border-radius: 0.4rem;
+    width:100%;
+    
+}
+button:hover{
+    background-color: #f0f0f0;
+    box-shadow: 0.1rem 0.1rem 0.1rem #888888bf;
+}
+.container{
+    width: 300px;
+    text-align: center;
+    justify-content: center;
+}
