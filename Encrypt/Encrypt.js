@@ -1,29 +1,5 @@
 //web crypto api
-export async function EncryptKey(input, Key, IV) {
-  console.log("Encrypting Key");
-  const encoder = new TextEncoder();
-  const Encrypted = await window.crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: encoder.encode(IV) },
-    Key,
-    encoder.encode(input)
-  );
-  console.log("Key Encrypted");
-  return Encrypted;
-}
-
-export async function DecryptKey(input, Key, IV) {
-  console.log("Decrypting Key");
-  const encoder = new TextEncoder();
-  const Decrypted = await window.crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: encoder.encode(IV) },
-    Key,
-    input
-  );
-  console.log("Key Decrypted");
-  return Decrypted;
-}
-
-export async function EnceryptString(input, Key, IV) {
+export async function encryptString(input, Key, IV) {
   //make The Input string into an array
   const encoder = new TextEncoder();
   const convertedInput = encoder.encode(input);
@@ -38,7 +14,7 @@ export async function EnceryptString(input, Key, IV) {
   //return the encrypted data
   return Encrypted;
 }
-export async function DecryptString(input, Key, IV) {
+export async function decryptString(input, Key, IV) {
   //make The Input into an array
   console.log("Decrypting String");
   const encoder = new TextEncoder();
@@ -80,28 +56,12 @@ export async function PBKDF2KeyGen(Password, Salt) {
   return key;
 }
 
-export async function exportKey(key) {
-  const exported = await window.crypto.subtle.exportKey("raw", key);
-  return exported;
-}
-
-export async function importKey(buffer) {
-  const key = await window.crypto.subtle.importKey(
-    "raw",
-    buffer,
-    { name: "AES-GCM" },
-    true,
-    ["encrypt", "decrypt"]
-  );
-  return key;
-}
-
-export async function HashIt(input, salt) {
+export async function hashIt(input, salt = null) {
   //Make the input into an array
   const encoder = new TextEncoder();
   let data = null;
   if (salt) {
-    data = encoder.encode(Splice(input, salt));
+    data = encoder.encode(interSplice(input, salt));
   } else {
     data = encoder.encode(input);
   }
@@ -109,38 +69,25 @@ export async function HashIt(input, salt) {
   //Hash it with SHA-256
   const hashBuffer = await window.crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  //Convert the raw array into a HEx string
   const hashHex = hashArray
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
   return hashHex;
 }
 
-export async function Uhash(input) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(input);
-  const hashBuffer = await window.crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-
-  return hashHex;
-}
-
-export async function GenerateRandom(length) {
+export async function generateRandom(length) {
   const array = new Uint8Array(length);
-  window.crypto.getRandomValues(array);
+  crypto.getRandomValues(array);
   return Array.from(array)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
 
-export async function CreateSession(Hash, MasterKeyBase, MasterSalt, UserID) {
+export async function createSession(userHash, masterKeyBase, masterSalt, UserID) {
   console.log("Creating necesary random values for session");
-  let sessionID = await GenerateRandom(16);
-  let sessionSalt = await GenerateRandom(16);
-  let IV = await GenerateRandom(16);
+  let sessionID = await generateRandom(16);
+  let sessionSalt = await generateRandom(16);
+  let IV = await generateRandom(16);
   console.log("Got necessary random values for session");
 
   console.log("Generating Session Key with PBKDF2");
@@ -148,7 +95,7 @@ export async function CreateSession(Hash, MasterKeyBase, MasterSalt, UserID) {
   console.log("Session Key Generated");
 
   console.log("Encrypting Master Key with Session Key");
-  const EncryptedKey = await EnceryptString(MasterKeyBase, sessionKey, IV);
+  const EncryptedKey = await encryptString(masterKeyBase, sessionKey, IV);
   console.log("Master Key Encrypted");
 
   console.log(" converting Encrypted Key to a storable format");
@@ -157,9 +104,9 @@ export async function CreateSession(Hash, MasterKeyBase, MasterSalt, UserID) {
 
   console.log("Setting up Session Token");
   let sessionToken = {
-    UserHash: Hash,
+    UserHash: userHash,
     UserID: UserID,
-    MasterSalt: MasterSalt,
+    MasterSalt: masterSalt,
     SessionSalt: sessionSalt,
     Key: StorableKey,
     CurrentIV: IV,
@@ -170,35 +117,67 @@ export async function CreateSession(Hash, MasterKeyBase, MasterSalt, UserID) {
   return sessionToken;
 }
 
-export async function DecryptSession(session) {
-  const sessionKey = await PBKDF2KeyGen(session.SessionID, session.SessionSalt);
-  const deserializedKey = base64ToArrayBuffer(session.Key);
-  const Key = await decrypt(deserializedKey, sessionKey, session.CurrentIV);
-  return Key;
+export async function sessionDeriveMasterKey(session, salt) {
+
+  if(!salt){
+    salt = session.MasterSalt;
+  }
+  const decryption_Key = await PBKDF2KeyGen(
+    session.SessionID,
+    session.SessionSalt
+  );
+  const master_Key_Array = base64ToArrayBuffer(session.Key);
+  const master_Key_Base = await decryptString(
+    master_Key_Array,
+    decryption_Key,
+    session.CurrentIV
+  );
+  const master_Key = PBKDF2KeyGen(master_Key_Base, salt);
+
+  return master_Key;
 }
 
-export async function Validate(Records, CurrentPass) {
+export async function validate(records, current_Pass_string) {
   console.log("Validate Function reachec");
-  let SusPass = await PBKDF2KeyGen(CurrentPass, Records.salt);
+  let SusPass = await PBKDF2KeyGen(current_Pass_string, records.salt);
   console.log("SusPass Generated");
-  let Dearrayed = base64ToArrayBuffer(Records.Mkey);
-  console.log("Dearrayed Key Generated");
-  let DecryptedKey = await decrypt(Dearrayed, SusPass, Records.IV);
-  console.log("Decrypted Key Generated");
-  return DecryptedKey === SusPass;
+  const encrypted_Buffer = base64ToArrayBuffer(records.Mkey);
+  console.log("Encrypted_Buffer generated");
+
+  try {
+    const decrypted_Key = await decryptString(
+      encrypted_Buffer,
+      SusPass,
+      records.IV
+    );
+    console.log("Decrypted Key Generated");
+
+    const master_Key = await hashIt(current_Pass_string, records.MasterSalt);
+
+    if (decrypted_Key === master_Key) {
+      console.log("Password is Valid");
+      return true;
+    }
+
+    return false;
+
+  } catch (error) {
+    console.log("Error Decrypting Key: ", error);
+    return false;
+  }
 }
 
-function Splice(input, salt) {
+function interSplice(input, salt) {
   //Make the input and Salt into arrays
   const encoder = new TextEncoder();
   const InputArray = encoder.encode(input);
   const SaltArray = encoder.encode(salt);
 
-  //set up the total of the new array
+  //set up the total length of the new array
   let TotalLength = InputArray.length + SaltArray.length;
   let Spliced = new Uint8Array(TotalLength);
 
-  //Splice the arrays
+  //Inter splice the arrays
   let Toggle = true;
   let inputCounter = 0;
   let saltCounter = 0;
@@ -229,12 +208,12 @@ export function arrayBufferToBase64(buffer) {
 }
 
 export function base64ToArrayBuffer(base64) {
-  const binaryString = window.atob(base64); 
+  const binaryString = window.atob(base64);
   const length = binaryString.length;
   const arrayBuffer = new ArrayBuffer(length);
   const uint8Array = new Uint8Array(arrayBuffer);
   for (let i = 0; i < length; i++) {
     uint8Array[i] = binaryString.charCodeAt(i);
   }
-  return arrayBuffer; 
+  return arrayBuffer;
 }

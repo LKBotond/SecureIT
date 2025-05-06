@@ -1,4 +1,4 @@
-export async function GetActiveTab() {
+export async function getActiveTab() {
   return new Promise((resolve, reject) =>
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (chrome.runtime.lastError) {
@@ -10,9 +10,16 @@ export async function GetActiveTab() {
   );
 }
 
+export function getUrlRoot(url) {
+  try {
+    const real = new URL(url);
+    return "${real.protocol}//${real.host}";
+  } catch (error) {
+    return null;
+  }
+}
 
-//store the data locally
-export async function StoreLocally(Key, Value) {
+export async function storeLocally(Key, Value) {
   return new Promise((resolve, reject) => {
     let data = {};
     data[Key] = Value;
@@ -28,9 +35,7 @@ export async function StoreLocally(Key, Value) {
   });
 }
 
-
-//load the data from local storage
-export async function GetLocal(Key) {
+export async function getLocal(Key) {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(Key, function (result) {
       if (chrome.runtime.lastError) {
@@ -42,7 +47,47 @@ export async function GetLocal(Key) {
   });
 }
 
+export async function storeSession(Key, Value) {
+  return new Promise((resolve, reject) => {
+    let data = {};
+    data[Key] = Value;
+    chrome.storage.session.set(data, function () {
+      if (chrome.runtime.lastError) {
+        console.error("Error storing data:", chrome.runtime.lastError);
+        reject(chrome.runtime.lastError);
+      } else {
+        console.log("Data stored successfully");
+        resolve();
+      }
+    });
+  });
+}
+export async function getSession(Key) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.session.get(Key, function (result) {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result[Key]);
+      }
+    });
+  });
+}
+
 export async function DELETE(Key) {
+  if (Key == "session") {
+    return new Promise((resolve, reject) => {
+      chrome.storage.session.remove(Key, function () {
+        if (chrome.runtime.lastError) {
+          console.error("Error removing data:", chrome.runtime.lastError);
+          reject(chrome.runtime.lastError);
+        } else {
+          console.log("Data removed successfully");
+          resolve();
+        }
+      });
+    });
+  }
   return new Promise((resolve, reject) => {
     chrome.storage.local.remove(Key, function () {
       if (chrome.runtime.lastError) {
@@ -56,24 +101,7 @@ export async function DELETE(Key) {
   });
 }
 
-export async function Inject(tabID, Script) {
-  return new Promise((resolve, reject) => {
-    chrome.scripting.executeScript({
-      target: { tabId: tabID },
-      files: [Script]
-    }, () => {
-      if (chrome.runtime.lastError) {
-        console.log("Injection Failed", chrome.runtime.lastError)
-        reject(chrome.runtime.lastError);
-      } else {
-        console.log("Injection succesfull")
-        resolve();
-      }
-    });
-  });
-}
-
-export function CollectFormData() {
+export function collectFormData() {
   let Preliminary = {
     Username: document.getElementById("username").value,
     Password: document.getElementById("password").value,
@@ -81,10 +109,41 @@ export function CollectFormData() {
   return Preliminary;
 }
 
-export function VerifyIntegrity(FormData){
-if (FormData.Username == "" || FormData.Password == "") {
+export function verifyIntegrity(FormData, password_Length) {
+  if (FormData.Username == "" || FormData.Password == "") {
     console.log("No username or password provided");
     return false;
   }
+  if (FormData.Password.length < password_Length) {
+    console.log("Password is too short");
+    return false;
+  }
   return true;
+}
+
+export function verboten(FormData) {
+  let heretical = [
+    "/",
+    "[",
+    "<",
+    ">",
+    ";",
+    "(",
+    ")",
+    "&",
+    "|",
+    "$",
+    "]",
+    "/",
+    "'",
+    '"',
+  ];
+  for (let data of Object.values(FormData)) {
+    for (let char of data) {
+      if (heretical.includes(char)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }

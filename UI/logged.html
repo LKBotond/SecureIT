@@ -1,20 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../Styles/popup.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../Styles/popup.css" />
     <title>App</title>
-</head>
-<body class="container">
-    <h1>Your Local Password manager</h1>
-    <p>On each website the manager will scrape your username and password, encrypt it and store it locally</p>
-    <p>If the website is in the database it will automatically log you in.</p>
-    <p>AutoLoggin <span id="AutologTXT">Enabled</span></p>
-    <button id="Autolog">Toggle AutoLog</button>
+  </head>
+  <body class="container">
+    <h1>SecureIT</h1>
+    <h2>Your local password manager</h2>
+    <p>
+      On each website SecureIT will look for your username and password,
+      encrypt it and store it locally
+    </p>
+
+    <div class="autolog">
+      <p>Auto Log in: <span id="AutologTXT">Enabled</span></p>
+      <button id="Autolog">Toggle AutoLog</button>
+    </div>
     <button id="Update">Update</button>
     <button id="Logout">Logout</button>
     <button id="Delete">DELETE</button>
     <script type="module" src="logged.js"></script>
-</body>
+  </body>
 </html>

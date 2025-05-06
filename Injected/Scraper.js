@@ -1,7 +1,81 @@
-const NameTypes = ["text", "email", "tel"];
-const PassType = "password";
+//necesary constants
+console.log("Scraper.js loaded");
+const name_Types = ["text", "email", "tel"];
+const pass_Type = "password";
 
-async function EnceryptString(input, Key, IV) {
+//copied import functions
+async function PBKDF2KeyGen(Password, Salt) {
+  const encoder = new TextEncoder();
+  const keyMaterial = await window.crypto.subtle.importKey(
+    "raw",
+    encoder.encode(Password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveKey"]
+  );
+
+  const key = await window.crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: encoder.encode(Salt),
+      iterations: 100000,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    true,
+    ["encrypt", "decrypt"]
+  );
+  return key;
+}
+async function sessionDeriveMasterKey(session, salt) {
+  if (!salt) {
+    salt = session.MasterSalt;
+  }
+  const decryption_Key = await PBKDF2KeyGen(
+    session.SessionID,
+    session.SessionSalt
+  );
+  const master_Key_Array = base64ToArrayBuffer(session.Key);
+  const master_Key_Base = await decryptString(
+    master_Key_Array,
+    decryption_Key,
+    session.CurrentIV
+  );
+  const master_Key = PBKDF2KeyGen(master_Key_Base, salt);
+
+  return master_Key;
+}
+
+async function getLocal(Key) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(Key, function (result) {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result[Key]);
+      }
+    });
+  });
+}
+
+async function storeLocally(Key, Value) {
+  return new Promise((resolve, reject) => {
+    let data = {};
+    data[Key] = Value;
+    chrome.storage.local.set(data, function () {
+      if (chrome.runtime.lastError) {
+        console.error("Error storing data:", chrome.runtime.lastError);
+        reject(chrome.runtime.lastError);
+      } else {
+        console.log("Data stored successfully");
+        resolve();
+      }
+    });
+  });
+}
+
+async function encryptString(input, Key, IV) {
   //make The Input string into an array
   const encoder = new TextEncoder();
   const convertedInput = encoder.encode(input);
@@ -16,7 +90,8 @@ async function EnceryptString(input, Key, IV) {
   //return the encrypted data
   return Encrypted;
 }
-async function DecryptString(input, Key, IV) {
+
+async function decryptString(input, Key, IV) {
   //make The Input into an array
   console.log("Decrypting String");
   const encoder = new TextEncoder();
@@ -33,7 +108,7 @@ async function DecryptString(input, Key, IV) {
   return decoder.decode(Decrypted);
 }
 
-async function GenerateRandom(length) {
+async function generateRandom(length) {
   const array = new Uint8Array(length);
   window.crypto.getRandomValues(array);
   return Array.from(array)
@@ -41,29 +116,6 @@ async function GenerateRandom(length) {
     .join("");
 }
 
-async function PBKDF2KeyGen(Password, Salt) {
-  const encoder = new TextEncoder();
-  const keyMaterial = await window.crypto.subtle.importKey(
-    "raw",
-    encoder.encode(Password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveKey"]
-  );
-  const key = await window.crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt: encoder.encode(Salt),
-      iterations: 100000,
-      hash: "SHA-256",
-    },
-    keyMaterial,
-    { name: "AES-GCM", length: 256 },
-    true,
-    ["encrypt", "decrypt"]
-  );
-  return key;
-}
 function arrayBufferToBase64(buffer) {
   const uint8Array = new Uint8Array(buffer);
   let binaryString = "";
@@ -73,33 +125,21 @@ function arrayBufferToBase64(buffer) {
   return window.btoa(binaryString);
 }
 function base64ToArrayBuffer(base64) {
-  const binaryString = window.atob(base64); // Decode the base64 string to binary string
+  const binaryString = window.atob(base64);
   const length = binaryString.length;
   const arrayBuffer = new ArrayBuffer(length);
   const uint8Array = new Uint8Array(arrayBuffer);
   for (let i = 0; i < length; i++) {
     uint8Array[i] = binaryString.charCodeAt(i);
   }
-  return arrayBuffer; // Return as ArrayBuffer
+  return arrayBuffer;
 }
 
-async function GetLocal(Key) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get(Key, function (result) {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(result[Key]);
-      }
-    });
-  });
-}
-
-function CheckForName(input) {
-  if (!NameTypes.includes(input.type)) {
+//local functions
+function checkForName(input) {
+  if (!name_Types.includes(input.type)) {
     return false;
   }
-  //check for username in the name, id, placeholder and class of the input
   if (
     /user/.test((input.getAttribute("name") || "").toLowerCase()) ||
     /user/.test((input.getAttribute("id") || "").toLowerCase()) ||
@@ -124,10 +164,18 @@ function CheckForName(input) {
   ) {
     return input;
   }
+  if (
+    /ident/.test((input.getAttribute("name") || "").toLowerCase()) ||
+    /ident/.test((input.getAttribute("id") || "").toLowerCase()) ||
+    /ident/.test((input.getAttribute("placeholder") || "").toLowerCase()) ||
+    /ident/.test((input.getAttribute("class") || "").toLowerCase())
+  ) {
+    return true;
+  }
   return false;
 }
-function CheckForPass(input) {
-  if (!input.type === PassType) {
+function checkForPass(input) {
+  if (input.type !== pass_Type) {
     return false;
   }
   if (
@@ -142,36 +190,37 @@ function CheckForPass(input) {
 }
 
 function getLoginForm() {
-  const Forms = document.querySelectorAll("form");
-  console.log("found this", Forms);
-  for (let Form of Forms) {
-    console.log("we are here", Form);
-    const inputs = Form.querySelectorAll("input");
+  const forms = document.querySelectorAll("form");
+  console.log("found these forms", forms);
+
+  for (let form of forms) {
+    console.log("we are here", form);
+    const inputs = form.querySelectorAll("input");
     console.log("found these inputs", inputs);
-    let NameFound = false;
-    let PassFound = false;
+    let name_Found = false;
+    let pass_Found = false;
+
     inputs.forEach((input) => {
       console.log("We are at this input", input);
-      const IsName = CheckForName(input);
-      const IsPass = CheckForPass(input);
-      console.log("Name", IsName);
-      console.log("Pass", IsPass);
-      if (IsName) {
+      const is_Name = checkForName(input);
+      const is_Pass = checkForPass(input);
+
+      if (is_Name) {
         console.log("name Found");
-        NameFound = true;
+        name_Found = true;
       }
-      if (IsPass) {
+      if (is_Pass) {
         console.log("Pass Found");
-        PassFound = true;
+        pass_Found = true;
       }
     });
-    if (NameFound && PassFound) {
-      return Form;
+    if (name_Found && pass_Found) {
+      return form;
     }
   }
   return null;
 }
-function GetLoginButton(form) {
+function getLoginButton(form) {
   console.log("getting login button");
   let buttons = form.querySelectorAll("button");
   for (let button of buttons) {
@@ -185,38 +234,62 @@ function GetLoginButton(form) {
       ) {
         console.log("found THE button", button);
         return button;
+      } else if (
+        /in/.test((button.getAttribute("name") || "").toLowerCase()) ||
+        /in/.test((button.getAttribute("id") || "").toLowerCase()) ||
+        /in/.test((button.getAttribute("class") || "").toLowerCase()) ||
+        /in/.test(button.textContent.toLowerCase())
+      ) {
+        console.log("found THE button", button);
+        return button;
+      } else if (
+        /sign/.test((button.getAttribute("name") || "").toLowerCase()) ||
+        /sign/.test((button.getAttribute("id") || "").toLowerCase()) ||
+        /sign/.test((button.getAttribute("class") || "").toLowerCase()) ||
+        /sign/.test(button.textContent.toLowerCase())
+      ) {
+        console.log("found THE button", button);
+        return button;
+      } else if (
+        /next/.test((button.getAttribute("name") || "").toLowerCase()) ||
+        /next/.test((button.getAttribute("id") || "").toLowerCase()) ||
+        /next/.test((button.getAttribute("class") || "").toLowerCase()) ||
+        /next/.test(button.textContent.toLowerCase())
+      ) {
+        console.log("found THE button", button);
+        return button;
       }
     }
   }
   return null;
 }
 
-function GetLoginData(form) {
+function getLoginData(form) {
   let credentials = {
-    Url: window.location.href,
+    URL: null,
     IV: null,
-    LocalSalt: null,
+    localSalt: null,
     username: null,
     password: null,
   };
 
   //get input data
   const inputs = form.querySelectorAll("input");
-  let NameFound = false;
-  let PassFound = false;
+  let name_Found = false;
+  let pass_Found = false;
   inputs.forEach((input) => {
-    let IsName = CheckForName(input);
-    let IsPass = CheckForPass(input);
+    let IsName = checkForName(input);
+    let IsPass = checkForPass(input);
     if (IsName) {
       credentials.username = input.value;
-      NameFound = true;
+      name_Found = true;
     }
     if (IsPass) {
       credentials.password = input.value;
-      PassFound = true;
+      pass_Found = true;
     }
   });
-  if (NameFound && PassFound) {
+  if (name_Found && pass_Found) {
     console.log("credentials found and saved");
     return credentials;
   }
@@ -224,81 +297,50 @@ function GetLoginData(form) {
   return null;
 }
 
-async function EncryptCredentials(credentials, Session) {
-  const EncryptionKey = await PBKDF2KeyGen(
-    Session.SessionID,
-    Session.SessionSalt
-  );
+async function encryptCredentials(credentials, session) {
+  let local_Salt = await generateRandom(16);
 
-  console.log("Encryption Key generated", EncryptionKey);
+  const master_Key = await sessionDeriveMasterKey(session, local_Salt);
+  console.log("Master Key Generated");
 
-  const MasterKeyBase = base64ToArrayBuffer(Session.Key);
-
-  console.log("Master Key base64 converted", MasterKeyBase);
-
-  const MasterKeyString = await DecryptString(
-    MasterKeyBase,
-    EncryptionKey,
-    Session.CurrentIV
-  );
-  console.log("Master Key decrypted", MasterKeyString);
-
-  let LocalSalt = await GenerateRandom(16);
-  console.log("Web Salt generated", LocalSalt);
-  const MasterKey = await PBKDF2KeyGen(MasterKeyString, LocalSalt);
-
-  console.log("Master Key decrypted", MasterKey);
-
-  const IV = await GenerateRandom(16);
-  const EncryptedPassword = await EnceryptString(
+  const IV = await generateRandom(16);
+  const encrypted_Password = await encryptString(
     credentials.password,
-    MasterKey,
+    master_Key,
     IV
   );
 
-  console.log("Encrypted Password", EncryptedPassword);
+  console.log("Encrypted Password");
 
-  const EncryptedUsername = await EnceryptString(
+  const encrypted_Username = await encryptString(
     credentials.username,
-    MasterKey,
+    master_Key,
     IV
   );
 
-  console.log("Encrypted Username", EncryptedUsername);
+  console.log("Encrypted Username");
   credentials.IV = IV;
-  credentials.LocalSalt = LocalSalt;
-  credentials.username = arrayBufferToBase64(EncryptedUsername);
-  credentials.password = arrayBufferToBase64(EncryptedPassword);
+  credentials.localSalt = local_Salt;
+  credentials.username = arrayBufferToBase64(encrypted_Username);
+  credentials.password = arrayBufferToBase64(encrypted_Password);
   return credentials;
 }
 
-async function DecryptCredentials(credentials, session) {
-  const EncryptionKey = await PBKDF2KeyGen(
-    session.SessionID,
-    session.SessionSalt
+async function decryptCredentials(credentials, session) {
+  const master_Key = await sessionDeriveMasterKey(
+    session,
+    credentials.localSalt
   );
-  console.log("Encryption Key generated", EncryptionKey);
-
-  const MasterKeyBase = base64ToArrayBuffer(session.Key);
-  console.log("Master Key base64 converted", MasterKeyBase);
-
-  const MasterKeyString = await DecryptString(
-    MasterKeyBase,
-    EncryptionKey,
-    session.CurrentIV
-  );
-
-  const MasterKey = await PBKDF2KeyGen(MasterKeyString, credentials.LocalSalt);
-  console.log("Master Key decrypted", MasterKey);
+  console.log("Master Key derived");
   const IV = credentials.IV;
-  const DecryptedPassword = await DecryptString(
+  const DecryptedPassword = await decryptString(
     base64ToArrayBuffer(credentials.password),
-    MasterKey,
+    master_Key,
     IV
   );
-  const DecryptedUsername = await DecryptString(
+  const DecryptedUsername = await decryptString(
     base64ToArrayBuffer(credentials.username),
-    MasterKey,
+    master_Key,
     IV
   );
 
@@ -307,59 +349,85 @@ async function DecryptCredentials(credentials, session) {
   return credentials;
 }
 
-function Infill(credentials) {
-  console.log("Infill function fired", credentials);
-  const Form = getLoginForm();
-  const inputs = Form.querySelectorAll("input");
+function infill(credentials, login_Button) {
+  const form = getLoginForm();
+  if (!form) {
+    console.log("No form found, aborting infill");
+    return;
+  }
+  const inputs = form.querySelectorAll("input");
   inputs.forEach((input) => {
-    if (CheckForName(input)) {
+    if (checkForName(input)) {
       input.value = credentials.username;
     }
-    if (CheckForPass(input)) {
+    if (checkForPass(input)) {
       input.value = credentials.password;
     }
   });
-  Form.submit();
+  //login_Button.click();
+}
+async function intercept(event, login_Form, login_Button, session, port) {
+  event.preventDefault();
+  const credentials = getLoginData(login_Form);
+  //potential Issue here if credentials are incomplete and the user clicks by accident
+  if (credentials) {
+    const encrypted_Credentials = await encryptCredentials(
+      credentials,
+      session
+    );
+    port.postMessage({
+      message: "scraped",
+      payload: encrypted_Credentials,
+    });
+    console.log("scraped credentials");
+    login_Button.click();
+  }
 }
 
 //main
-chrome.runtime.onConnect.addListener(function (port) {
-  port.postMessage({ message: "connected", url: window.location.href });
-  port.onMessage.addListener(async function (request) {
-    console.log("Port is connected to background script", request);
-    if (request.message == "scrape") {
-      console.log("scraping for credentials");
+async function main() {
+  const login_Form = getLoginForm();
+  if (!login_Form) {
+    console.log("No form found, aborting scrape");
+    return;
+  }
+  const login_Button = getLoginButton(login_Form);
+  if (!login_Button) {
+    console.log("No form found, aborting scrape");
+    return;
+  }
 
-      const Form = getLoginForm();
-
-      const LoginButton = GetLoginButton(Form);
-      LoginButton.addEventListener("click", async function (event) {
-        event.preventDefault();
-        const credentials = GetLoginData(Form);
-        if (credentials) {
-          const Session = await GetLocal("session");
-          const EncryptedCredentials = await EncryptCredentials(
-            credentials,
-            Session
-          );
-          port.postMessage({
-            message: "scraped",
-            payload: EncryptedCredentials,
-          });
-          console.log("scraped credentials", EncryptedCredentials);
-          return;
-        }
-      });
-    } else if (request.message == "infill") {
-      console.log("Infill function fired", request.payload);
-      const Session = await GetLocal("session");
-      console.log("Session", Session);
-      const credentials = await DecryptCredentials(request.payload, Session);
-      Infill(credentials);
-      port.postMessage({ message: "infilled" });
+  chrome.runtime.onConnect.addListener(async function (port) {
+    if (port.name != "backchanel") {
+      console.log("Port is foreign, ignoring");
+      port.disconnect();
       return;
     }
+    port.onMessage.addListener(async function (request) {
+      console.log("Port is connected to background script");
+      const session = request.session;
+      if (request.message == "scrape") {
+        console.log("scraping for credentials");
+        login_Button.addEventListener(
+          "click",
+          (event) => intercept(event, login_Form, login_Button, session, port),
+          {
+            once: true,
+          }
+        );
+      } else if (request.message == "infill") {
+        console.log("Infill function fired");
+        console.log(request.payload);
+        const credentials = await decryptCredentials(request.payload, session);
+        console.log(credentials);
+        port.postMessage({ message: "infilled" });
+        infill(credentials, login_Button);
+        return;
+      }
+    });
   });
-});
+}
 
-//IT IS ALLIVE and WORKING
+(async () => {
+  await main();
+})();

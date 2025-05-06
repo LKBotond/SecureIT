@@ -1,7 +1,5 @@
-import {
-  Validate,
-} from "../Encrypt/Encrypt.js";
-import { GetLocal, StoreLocally, DELETE } from "../Helpers/Helpers.js";
+import { validate } from "../Encrypt/Encrypt.js";
+import { getLocal, storeLocally,getSession,storeSession, DELETE } from "../Helpers/Helpers.js";
 document.addEventListener("DOMContentLoaded", function () {
   //Logout
   document
@@ -16,16 +14,14 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("Delete")
     .addEventListener("click", async function (event) {
       console.log("Pressed DELETE");
-      event.preventDefault();
-      await DeleteUser();
+      await deleteUser();
     });
 
   //Toggle Autolog
   document
     .getElementById("Autolog")
     .addEventListener("click", async function (event) {
-      event.preventDefault();
-      await ToggleAutolog();
+      await toggleAutolog();
     });
 
   //direct Updates
@@ -36,15 +32,12 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-
-
-
 function Modify(id, value) {
   document.getElementById(id).textContent = value;
 }
 
-async function ToggleAutolog() {
-  let session = await GetLocal("session");
+async function toggleAutolog() {
+  let session = await getSession("session");
   let toggle = session.autolog;
   toggle = !toggle;
   if (toggle) {
@@ -53,7 +46,7 @@ async function ToggleAutolog() {
     Modify("AutologTXT", "Disabled");
   }
   session.autolog = toggle;
-  await StoreLocally("session", session);
+  await storeSession("session", session);
 }
 
 async function Logout() {
@@ -63,20 +56,19 @@ async function Logout() {
   window.location.href = "index.html";
 }
 
-async function DeleteUser() {
-  let session = await GetLocal("session");
-  let User = GetLocal(session.UserHash);
+async function deleteUser() {
+  let session = await getSession("session");
+  let User = getLocal(session.UserHash);
   let SusPass = prompt("Type in your password to verify your identity");
-  if (Validate(User, SusPass)) {
-    if (confirm("Are you sure? THIS WILL DELETE ALL YOUR STORED PASSWORDS")) {
-      await DELETE(session.UserID);
-      await DELETE(session.UserHash);
-      await DELETE("session");
-      alert("All stored Data has been deleted");
-      window.location.href = "index.html";
-    }
-  } else {
+  if (!validate(User, SusPass)) {
     alert("Invalid Password");
+    return;
+  }
+  if (confirm("Are you sure? THIS WILL DELETE ALL YOUR STORED PASSWORDS")) {
+    await DELETE(session.UserID);
+    await DELETE(session.UserHash);
+    await DELETE("session");
+    alert("All stored Data has been deleted");
+    window.location.href = "index.html";
   }
 }
-
