@@ -24,7 +24,8 @@ The use of AI: Ai was used as a search engine substitute.
 
 - [Files](#Files)
 - [General Overview](#General-Overview)
-- [control Flow](#control-Flow)
+- [control Flow](#Control-Flow)
+- [DIY Test](#Testing)
 - [Encryption](#Encryption)
 - [Web Scraping](#Web-Scraping)
 - [Post scriptum and a potential threat modell](#Post-scriptum-and-a-potential-threat-modell)
@@ -42,6 +43,18 @@ This is the content script that handles the collection, infilling, storage, encr
 
 **./Styles/Ppopup.css**
 Styling for the popup windows
+
+**./Test/Test_failed.html**
+Window the test redirrects to if test log in failes.
+**./Test/Test_Success.html**
+Window the test redirrects to if test login succeeds
+**./Test/test.css**
+Styling for the test
+**./Test/test.html**
+Main test login form
+**./Test/test.js**
+Logic for manouvering amongst the test pages and for a very basic "login / register" logic.
+
 
 **./UI/Index.html**
 User interface for user registration and (or) authentication.
@@ -76,7 +89,7 @@ At last, i opted for a **"log in once use it till browser closure / log out / us
 
 On this road i've learned the basics of authentication, cryptography, secure storage, event managment, and secure content script-background script communications.
 
-## control Flow
+## Control Flow
 
 ### Abstract:
 
@@ -144,6 +157,23 @@ After the password and the session are secured, the user is redirrected to the i
 First things First the username is hashed to retrieve the previously stored **User object**, if not found, the user is allerted.
 
 After getting the object, SecureIt tries to decrypt the stored **master key base**, if succesful the decrypted Key is compared with the rehashed version of the newly input password. If both of these stepps complete, a session is created, and the user is logged in and redirrected to the interior of the app.
+
+
+## Testing
+If you want to see how SecureIT works, there is a test folder which coontains files which will help demonstrate SecureIT's flow.
+### ABSTRACT:
+- Register a user in SecureIT's Login form.
+- Load test.html
+- Register a user on test.html
+- log in on test.html
+
+### Detailed:
+First things first, register a user into SecureIT by clicking on the extensions icon and filling out the login form and pressing register. this will redirrect you to SecureIT's interior popup. 
+Open up test.html in the browser where SecureIT is loaded.
+Fill out the Login form then click register, this will create a temporary user object within session storage. thus making sure no junk data is goingf to fill your harddrive.
+"Log in" by filling out the form again with the registered user's credentials.
+If you open up the dev tools you should see 3 entries in extension storage/local. One for the registered user object, and one with the URL for test.html, where you logged in your user.
+after going back to the original page, SecureIT, should automatically fill in all your credentials.
 
 ## Encryption
 
@@ -241,7 +271,6 @@ IF SecureIT doesn't find the URL within the database, it will send a message ("s
 SecureIT looks for Login forms by identifying their constituent elements. First it looks for every single form on the DOM, then looks through each input and button of each form. Once it finds an input field for a "username", a "password", and finds a "Log In" button, SecureIT flags the button, and adds an event listener to it for click events. On triggered the form is prevented from being subiotted, instead SecureIT collects the inputted user data, [**encrypts it**](#Collected-Credentials) then sends the encrypted data to the background script to be stored in the database.
 If no login form is found, secureIT returns a message as such and disconnects the port.
 CURRENTLY LIMITED TO TRADITIONAL LOGIN FORMS.
-
 
 ## Post scriptum and a potential threat modell:
 I tried to make it as secure as possible, by isolating and securing every potential attack vector. SecureIT uses a **strong encryption algorithm(AES-GCM)**, **session-based crypto keys also derived by a strong algorithm (PBKDF2 with SHA-256)** and all data that is **permanently stored stays encrypted on the users machine**.

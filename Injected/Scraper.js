@@ -59,22 +59,6 @@ async function getLocal(Key) {
   });
 }
 
-async function storeLocally(Key, Value) {
-  return new Promise((resolve, reject) => {
-    let data = {};
-    data[Key] = Value;
-    chrome.storage.local.set(data, function () {
-      if (chrome.runtime.lastError) {
-        console.error("Error storing data:", chrome.runtime.lastError);
-        reject(chrome.runtime.lastError);
-      } else {
-        console.log("Data stored successfully");
-        resolve();
-      }
-    });
-  });
-}
-
 async function encryptString(input, Key, IV) {
   //make The Input string into an array
   const encoder = new TextEncoder();
@@ -190,18 +174,15 @@ function checkForPass(input) {
 }
 
 function getLoginForm() {
+  console.log("searching for forms");
   const forms = document.querySelectorAll("form");
-  console.log("found these forms", forms);
 
   for (let form of forms) {
-    console.log("we are here", form);
     const inputs = form.querySelectorAll("input");
-    console.log("found these inputs", inputs);
     let name_Found = false;
     let pass_Found = false;
 
     inputs.forEach((input) => {
-      console.log("We are at this input", input);
       const is_Name = checkForName(input);
       const is_Pass = checkForPass(input);
 
@@ -215,6 +196,7 @@ function getLoginForm() {
       }
     });
     if (name_Found && pass_Found) {
+      console.log("Found form with name and pass inputs");
       return form;
     }
   }
@@ -224,7 +206,6 @@ function getLoginButton(form) {
   console.log("getting login button");
   let buttons = form.querySelectorAll("button");
   for (let button of buttons) {
-    console.log("found a button", button);
     if (button.type == "submit") {
       if (
         /log/.test((button.getAttribute("name") || "").toLowerCase()) ||
@@ -232,7 +213,7 @@ function getLoginButton(form) {
         /log/.test((button.getAttribute("class") || "").toLowerCase()) ||
         /log/.test(button.textContent.toLowerCase())
       ) {
-        console.log("found THE button", button);
+        console.log("found THE button");
         return button;
       } else if (
         /in/.test((button.getAttribute("name") || "").toLowerCase()) ||
@@ -240,7 +221,7 @@ function getLoginButton(form) {
         /in/.test((button.getAttribute("class") || "").toLowerCase()) ||
         /in/.test(button.textContent.toLowerCase())
       ) {
-        console.log("found THE button", button);
+        console.log("found THE button");
         return button;
       } else if (
         /sign/.test((button.getAttribute("name") || "").toLowerCase()) ||
@@ -248,7 +229,7 @@ function getLoginButton(form) {
         /sign/.test((button.getAttribute("class") || "").toLowerCase()) ||
         /sign/.test(button.textContent.toLowerCase())
       ) {
-        console.log("found THE button", button);
+        console.log("found THE button");
         return button;
       } else if (
         /next/.test((button.getAttribute("name") || "").toLowerCase()) ||
@@ -256,7 +237,7 @@ function getLoginButton(form) {
         /next/.test((button.getAttribute("class") || "").toLowerCase()) ||
         /next/.test(button.textContent.toLowerCase())
       ) {
-        console.log("found THE button", button);
+        console.log("found THE button");
         return button;
       }
     }
@@ -350,6 +331,7 @@ async function decryptCredentials(credentials, session) {
 }
 
 function infill(credentials, login_Button) {
+  console.log("Filling out form");
   const form = getLoginForm();
   if (!form) {
     console.log("No form found, aborting infill");
@@ -417,9 +399,7 @@ async function main() {
         );
       } else if (request.message == "infill") {
         console.log("Infill function fired");
-        console.log(request.payload);
         const credentials = await decryptCredentials(request.payload, session);
-        console.log(credentials);
         port.postMessage({ message: "infilled" });
         infill(credentials, login_Button);
         return;
