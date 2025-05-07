@@ -1,41 +1,19 @@
 import { validate } from "../Encrypt/Encrypt.js";
 import { getLocal, storeLocally,getSession,storeSession, DELETE } from "../Helpers/Helpers.js";
-document.addEventListener("DOMContentLoaded", function () {
-  //Logout
-  document
-    .getElementById("Logout")
-    .addEventListener("click", async function (event) {
-      event.preventDefault();
-      await Logout();
-    });
-
-  //delete
-  document
-    .getElementById("Delete")
-    .addEventListener("click", async function (event) {
-      console.log("Pressed DELETE");
-      await deleteUser();
-    });
-
-  //Toggle Autolog
-  document
-    .getElementById("Autolog")
-    .addEventListener("click", async function (event) {
-      await toggleAutolog();
-    });
-
-  //direct Updates
-  document.getElementById("Update").addEventListener("click", function (event) {
-    console.log("Pressed Update");
-    event.preventDefault();
-    window.location.href = "Correction.html";
-  });
-});
 
 function Modify(id, value) {
   document.getElementById(id).textContent = value;
 }
 
+async function setAutolog(){
+  let session = await getSession("session");
+  let toggle = session.autolog;
+  if (toggle) {
+    Modify("AutologTXT", "Enabled");
+  } else {
+    Modify("AutologTXT", "Disabled");
+  }
+}
 async function toggleAutolog() {
   let session = await getSession("session");
   let toggle = session.autolog;
@@ -72,3 +50,38 @@ async function deleteUser() {
     window.location.href = "index.html";
   }
 }
+
+document.addEventListener("DOMContentLoaded", async function () {
+  //Logout
+  document
+    .getElementById("Logout")
+    .addEventListener("click", async function (event) {
+      event.preventDefault();
+      await Logout();
+    });
+
+  //delete
+  document
+    .getElementById("Delete")
+    .addEventListener("click", async function (event) {
+      console.log("Pressed DELETE");
+      await deleteUser();
+    });
+
+  //Set Autolog
+  await setAutolog();
+
+  //Toggle Autolog
+  document
+    .getElementById("Autolog")
+    .addEventListener("click", async function (event) {
+      await toggleAutolog();
+    });
+
+  //direct Updates
+  document.getElementById("Update").addEventListener("click", function (event) {
+    console.log("Pressed Update");
+    event.preventDefault();
+    window.location.href = "Correction.html";
+  });
+});

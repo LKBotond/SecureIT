@@ -32,52 +32,26 @@ The use of AI: Ai was used as a search engine substitute.
 
 ## Files
 
-**./Encrypt/Encrypt.js**
-Source file for encryption functions and their ascociates.
-
-**./Helpers/Helpers.js**
+- **./Encrypt/Encrypt.js:** Source file for encryption functions and their ascociates.
+**./Helpers/Helpers.js:** 
 Source file for data storage and data manipulation functions.
+- **./Injected/Scraper.js:** This is the content script that handles the collection, infilling, storage, encrypion and decryption of user data.
+- **./Styles/Ppopup.css:** Styling for the popup windows
+- **./Test/Test_failed.html:** Window the test redirrects to if test log in failes.
+- **./Test/Test_Success.html:** Window the test redirrects to if test login succeeds.
+- **./Test/test.css:** Styling for the test
+- **./Test/test.html:** Main test login form
+- **./Test/test.js:** Logic for manouvering amongst the test pages and for a very basic "login / register" logic.
+- **./UI/Index.html:** User interface for user registration and (or) authentication.
+- **./UI/Index.js:** The logic for Index.html, handles the data collection encryption and storage of user data.
+- **./UI/logged.html:** User interface for user data manipulation, also this is the popup the user sees, whenever they are logged in
+- **./UI/logged.js:** Logic, for logged.html handles the events of user actions.
+- **./UI/Correction.html:** User interface form for manually changing passwords
+- **./UI/Correction.js:** handles the logic of changing user data on record
+- **./background.js:** Handles logic for the whole extension, like changing popup window based on user status, sending mesages to the content script, saving the data locally etc etc.
+- **manifest.json:** Necesary base layer
 
-**./Injected/Scraper.js**
-This is the content script that handles the collection, infilling, storage, encrypion and decryption of user data.
-
-**./Styles/Ppopup.css**
-Styling for the popup windows
-
-**./Test/Test_failed.html**
-Window the test redirrects to if test log in failes.
-**./Test/Test_Success.html**
-Window the test redirrects to if test login succeeds
-**./Test/test.css**
-Styling for the test
-**./Test/test.html**
-Main test login form
-**./Test/test.js**
-Logic for manouvering amongst the test pages and for a very basic "login / register" logic.
-
-
-**./UI/Index.html**
-User interface for user registration and (or) authentication.
-**./UI/Index.js**
-The logic for Index.html, handles the data collection encryption and storage of user data.
-
-**./UI/logged.html**
-User interface for user data manipulation, also this is the popup the user sees, whenever they are logged in
-**./UI/logged.js**
-Logic, for logged.html handles the events of user actions.
-
-**./UI/Correction.html**
-User interface form for manually changing passwords
-**./UI/Correction.js**
-handles the logic of changing user data on record
-
-**./background.js**
-Handles logic for the whole extension, like changing popup window based on user status, sending mesages to the content script, saving the data locally etc etc.
-
-**manifest.json**
-Necesary base layer
-
-**readme.md**
+**readme.md:** 
 Best attempt at a concise description
 
 ## General Overview

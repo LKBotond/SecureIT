@@ -330,7 +330,7 @@ async function decryptCredentials(credentials, session) {
   return credentials;
 }
 
-function infill(credentials, login_Button) {
+function infill(session, credentials, login_Button) {
   console.log("Filling out form");
   const form = getLoginForm();
   if (!form) {
@@ -346,7 +346,9 @@ function infill(credentials, login_Button) {
       input.value = credentials.password;
     }
   });
-  //login_Button.click();
+  if (session.autolog) {
+    login_Button.click();
+  }
 }
 async function intercept(event, login_Form, login_Button, session, port) {
   event.preventDefault();
@@ -401,7 +403,7 @@ async function main() {
         console.log("Infill function fired");
         const credentials = await decryptCredentials(request.payload, session);
         port.postMessage({ message: "infilled" });
-        infill(credentials, login_Button);
+        infill(session, credentials, login_Button);
         return;
       }
     });

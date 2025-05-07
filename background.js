@@ -46,10 +46,8 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
   const credentials = URL_List.find((item) =>
     Object.values(item).includes(current_URL)
   );
-  console.log("Credentials are ", credentials);
 
   if (!credentials) {
-    console.log("Credentials not found, scraping for credentials");
     port.postMessage({ message: "scrape", session: session });
     console.log("Scraping for credentials");
 
@@ -69,12 +67,6 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
     });
   }
   if (credentials) {
-    if (!session.autolog) {
-      console.log("Autolog is disabled, not infilling");
-
-      return;
-    }
-
     port.postMessage({
       message: "infill",
       payload: credentials,
@@ -94,11 +86,4 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
 });
 
 //tested and works
-chrome.windows.onRemoved.addListener(async function () {
-  try {
-    await DELETE("session");
-    console.log("session Deleted");
-  } catch (error) {
-    console.log("error catched " + error);
-  }
-});
+
