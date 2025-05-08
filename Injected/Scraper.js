@@ -176,7 +176,10 @@ function checkForPass(input) {
 function getLoginForm() {
   console.log("searching for forms");
   const forms = document.querySelectorAll("form");
-
+  if (!forms) {
+    console.log("No forms found");
+    return null;
+  }
   for (let form of forms) {
     const inputs = form.querySelectorAll("input");
     let name_Found = false;
@@ -205,6 +208,10 @@ function getLoginForm() {
 function getLoginButton(form) {
   console.log("getting login button");
   let buttons = form.querySelectorAll("button");
+  if (!buttons) {
+    console.log("No buttons found");
+    return null;
+  }
   for (let button of buttons) {
     if (button.type == "submit") {
       if (
@@ -370,23 +377,27 @@ async function intercept(event, login_Form, login_Button, session, port) {
 
 //main
 async function main() {
-  const login_Form = getLoginForm();
-  if (!login_Form) {
-    console.log("No form found, aborting scrape");
-    return;
-  }
-  const login_Button = getLoginButton(login_Form);
-  if (!login_Button) {
-    console.log("No form found, aborting scrape");
-    return;
-  }
-
   chrome.runtime.onConnect.addListener(async function (port) {
     if (port.name != "backchanel") {
       console.log("Port is foreign, ignoring");
       port.disconnect();
       return;
     }
+    const login_Form = getLoginForm();
+    if (!login_Form) {
+      console.log("NO form exists, aborting scrape");
+      port.postMessage({ message: "noForm" });
+      console.log("message sent");
+      return;
+    }
+    const login_Button = getLoginButton(login_Form);
+    if (!login_Button) {
+      console.log("No form found, aborting scrape");
+      port.postMessage({ message: "no form" });
+      console.log("message sent");
+      return;
+    }
+
     port.onMessage.addListener(async function (request) {
       console.log("Port is connected to background script");
       const session = request.session;

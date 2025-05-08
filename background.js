@@ -36,6 +36,10 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
 
   const port = chrome.tabs.connect(tab.tabId, { name: "backchanel" });
   console.log("Port created", port);
+  if (port == null) {
+    console.log("Port does not exist");
+    return;
+  }
 
   const session = await getSession("session");
   let URL_List = await getLocal(session.UserID);
@@ -50,10 +54,13 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
   if (!credentials) {
     port.postMessage({ message: "scrape", session: session });
     console.log("Scraping for credentials");
-
     port.onMessage.addListener(async function (response) {
       console.log("response recieved from content script");
-
+      if (response.message == "noForm") {
+        console.log("no form found disconnecting port");
+        port.disconnect();
+        return;
+      }
       if (response.message == "scraped") {
         console.log("Scraping done, now storing credentials");
         const credentials = response.payload;
@@ -86,4 +93,3 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
 });
 
 //tested and works
-

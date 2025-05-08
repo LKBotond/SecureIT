@@ -24,11 +24,8 @@ document
     }
     const session = await getSession("session");
     let URL_List = await getLocal(session.UserID);
-    console.log(URL_List);
     let URL = document.getElementById("URL").value;
-    console.log(URL);
     let credentials = URL_List.find((item) => Object.values(item).includes(URL));
-    console.log (credentials);
     if (!credentials) {
       alert("veird way to  add a password but ok");
     }
