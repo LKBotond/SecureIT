@@ -4,7 +4,6 @@ import {
   getLocal,
   storeLocally,
   getSession,
-  DELETE,
 } from "./Helpers/Helpers.js";
 
 chrome.runtime.onMessage.addListener(async function (
@@ -91,4 +90,3 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
   }
 });
 
-//tested and works
