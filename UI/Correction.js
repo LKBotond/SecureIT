@@ -8,8 +8,7 @@ import {
   storeLocally,
   getLocal,
   getSession,
-  verifyIntegrity,
-  verboten
+
 
 } from "../Helpers/Helpers.js";
 
@@ -17,22 +16,28 @@ document
   .getElementById("submit")
   .addEventListener("click", async function (event) {
     event.preventDefault();
+    console.log("Submit button clicked");
 
     if (!confirm("This will update your stored data, are you sure?")) {
       console.log("User cancelled the update");
       return;
     }
-    const session = getSession("session");
+    const session = await getSession("session");
     let URL_List = await getLocal(session.UserID);
+    console.log(URL_List);
     let URL = document.getElementById("URL").value;
-    const credentials = URL_List.find((item) => item[URL]);
+    console.log(URL);
+    let credentials = URL_List.find((item) => Object.values(item).includes(URL));
+    console.log (credentials);
     if (!credentials) {
-      alert("URL not found in the list");
-      return;
+      alert("veird way to  add a password but ok");
     }
-
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
+    if (username == "" || password == "") {
+      alert("Please fill in all fields");
+      return;
+    }
     let IV = await generateRandom(16);
     let local_salt = await generateRandom(16);
     
@@ -42,14 +47,15 @@ document
 
     //updating data
     credentials.IV = IV;
-    credentials.localSalt = salt;
+    credentials.localSalt = local_salt;
     credentials.username = arrayBufferToBase64(encrypted_Username);
     credentials.password = arrayBufferToBase64(encrypted_Password);
-    URL_List[URL] = credentials;
+    const index = URL_List.findIndex((item) => Object.values(item).includes(URL));
+    URL_List[index] = credentials;
     console.log("Data updated");
-    storeLocally(session.UserHash, JSON.stringify(URL_List));
+    await storeLocally(session.UserID, URL_List);
     alert("Data Updated");
-    window.location.href = "logged.html";
+    //window.location.href = "logged.html";
     return;
   });
 

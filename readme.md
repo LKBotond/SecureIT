@@ -33,21 +33,22 @@ The use of AI: Ai was used as a search engine substitute.
 ## Files
 
 - **./Encrypt/Encrypt.js:** Source file for encryption functions and their ascociates.
-**./Helpers/Helpers.js:** 
-Source file for data storage and data manipulation functions.
+- **./Helpers/Helpers.js:** Source file for data storage and data manipulation functions.
 - **./Injected/Scraper.js:** This is the content script that handles the collection, infilling, storage, encrypion and decryption of user data.
 - **./Styles/Ppopup.css:** Styling for the popup windows
-- **./Test/Test_failed.html:** Window the test redirrects to if test log in failes.
-- **./Test/Test_Success.html:** Window the test redirrects to if test login succeeds.
-- **./Test/test.css:** Styling for the test
-- **./Test/test.html:** Main test login form
-- **./Test/test.js:** Logic for manouvering amongst the test pages and for a very basic "login / register" logic.
-- **./UI/Index.html:** User interface for user registration and (or) authentication.
-- **./UI/Index.js:** The logic for Index.html, handles the data collection encryption and storage of user data.
-- **./UI/logged.html:** User interface for user data manipulation, also this is the popup the user sees, whenever they are logged in
-- **./UI/logged.js:** Logic, for logged.html handles the events of user actions.
-- **./UI/Correction.html:** User interface form for manually changing passwords
-- **./UI/Correction.js:** handles the logic of changing user data on record
+- **./Test**
+    - **/Test_failed.html:** Window the test redirrects to if test log in failes.
+    - **/Test_Success.html:** Window the test redirrects to if test login succeeds.
+    - **/test.css:** Styling for the test
+    - **/test.html:** Main test login form
+    - **/test.js:** Logic for manouvering amongst the test pages and for a very basic "login / register" logic.
+- **./UI**
+    - **/Index.html:** User interface for user registration and (or) authentication.
+    - **/Index.js:** The logic for Index.html, handles the data collection encryption and storage of user data.
+    - **/logged.html:** User interface for user data manipulation, also this is the popup the user sees, whenever they are logged in
+    - **/logged.js:** Logic, for logged.html handles the events of user actions.
+    - **/Correction.html:** User interface form for manually changing passwords
+    - **/Correction.js:** handles the logic of changing user data on record
 - **./background.js:** Handles logic for the whole extension, like changing popup window based on user status, sending mesages to the content script, saving the data locally etc etc.
 - **manifest.json:** Necesary base layer
 
@@ -112,7 +113,7 @@ SecureIT generates the necesary random values for User Registration(MasterSalt, 
 After this the Username and Password are Hashed with SHA-256. I opted to not Salt the username, since everything works locally, its highly unlikely to have so many users, on a home computer that there would be any collisions. Also The username is only used as a key to find and (or) store the registration data locally, thus not necesitating encryption.
 
 The password though goes through a more complicated journey, of which I describe under the [**Password security**](#Password-security) section in the [Encryption](#Encryption) chapter.
-TLDR on it, the user provided password is the base for both an **encryption key** for the user Object, and the **Key base** from which later encryption keys are derived. The **Key base** is then encrryppted by the **encryption key** and stored within the user object. After creating the user a temporary session is created which stores an encrypted version of the **Key base** and some necesary random values.
+TLDR on it, the user provided password is the base for both an **encryption key** for the user Object, and the **Key base** from which later encryption keys are derived. The **Key base** is then encry pted by the **encryption key** and stored within the user object. After creating the user a temporary session is created which stores an encrypted version of the **Key base** and some necesary random values.
 
 After the password and the session are secured, the user is redirrected to the interior of the app and Secure it will henceforth scrape newly visited websites.
 
@@ -182,9 +183,9 @@ Once the splicing is done the password is hashed by SHA-256.
 
 The result of this process is the **"Master Key Base"**
 
-To store it securely it is Encrypted by an **"Encryption Key"**. This crypto key is derived by utilising PBKDF2, with the unspliced initial user password as input, in combination with a different **"Encryption Salt"**. This process gives us the encrypted **"Master Key Base"**, which is used for later authentication purposes.
+To store it securely it is Encrypted by an **"Encryption Key"**. This crypto key is derived by utilising PBKDF2, with the unspliced initial user password as input, in combination with a different **"Encryption Salt"**. This process gives us the crypto key whith which SecureIT  encrypts the **"Master Key Base"**. The encryption process also makes use of a 16 byte sized cryptographically secure pseudo random initiation vector. This gioves us a version of the **"Master Key Base"** which is then used for user [authentication purposes](#Login-path)
 
-Since i needed a version of the **Maseter Key Base** to be readily available to encrypt, and decrypt all the other passwords, i opted for session based storage as well.
+Since i needed a version of the **Master Key Base** to be readily available to encrypt, and decrypt all the other passwords, i opted for session based storage as well.
 
 #### Session storage:
 The session is set up by the **"createSession()"** function which lives in **"Encrypt\Encrypt.js"**. It holds amongst a bunch of necesary random values, 2 very important ones when it comes to password security, these being **sessionID** and **sessionSalt**. These are 16 byte long crypptographically secure pseudo random values, from which a **session specific encryption** key is derived. **THIS KEY IS NEVER STORED DIRECTLY**, only derived when needed to encrypt or decrypt the **Master Key Base**. 
