@@ -55,7 +55,7 @@ document
     console.log("Data updated");
     await storeLocally(session.UserID, URL_List);
     alert("Data Updated");
-    //window.location.href = "logged.html";
+    window.location.href = "logged.html";
     return;
   });
 
