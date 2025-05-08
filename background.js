@@ -44,7 +44,6 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
   const session = await getSession("session");
   let URL_List = await getLocal(session.UserID);
   if (URL_List == null) {
-    console.log("URL List is ", URL_List);
     URL_List = [];
   }
   const credentials = URL_List.find((item) =>

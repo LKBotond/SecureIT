@@ -36,9 +36,11 @@ async function Logout() {
 
 async function deleteUser() {
   let session = await getSession("session");
-  let User = getLocal(session.UserHash);
+  let User = await getLocal(session.UserHash);
+  console.log("User is", User);
   let SusPass = prompt("Type in your password to verify your identity");
-  if (!validate(User, SusPass)) {
+  let passCorrect = await validate(User, SusPass);
+  if (!passCorrect) {
     alert("Invalid Password");
     return;
   }

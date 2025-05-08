@@ -138,7 +138,7 @@ export async function sessionDeriveMasterKey(session, salt) {
 }
 
 export async function validate(records, current_Pass_string) {
-  console.log("Validate Function reachec");
+  console.log("Validate Function reached");
   let SusPass = await PBKDF2KeyGen(current_Pass_string, records.salt);
   console.log("SusPass Generated");
   const encrypted_Buffer = base64ToArrayBuffer(records.Mkey);
