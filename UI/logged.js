@@ -1,5 +1,5 @@
 import { validate } from "../Encrypt/Encrypt.js";
-import { getLocal, storeLocally,getSession,storeSession, DELETE } from "../Helpers/Helpers.js";
+import { getLocal,getSession,storeSession, DELETE } from "../Helpers/Helpers.js";
 
 function Modify(id, value) {
   document.getElementById(id).textContent = value;
@@ -48,6 +48,7 @@ async function deleteUser() {
     await DELETE(session.UserID);
     await DELETE(session.UserHash);
     await DELETE("session");
+    await DELETE("logged");
     alert("All stored Data has been deleted");
     window.location.href = "index.html";
   }

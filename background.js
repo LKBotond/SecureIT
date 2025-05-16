@@ -1,10 +1,6 @@
 console.log("Service worker starting");
 
-import {
-  getLocal,
-  storeLocally,
-  getSession,
-} from "./Helpers/Helpers.js";
+import { getLocal, storeLocally, getSession } from "./Helpers/Helpers.js";
 
 chrome.runtime.onMessage.addListener(async function (
   request,
@@ -50,9 +46,8 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
   );
 
   if (!credentials) {
-    port.postMessage({ message: "scrape", session: session });
-    console.log("Scraping for credentials");
     port.onMessage.addListener(async function (response) {
+      console.log(response);
       console.log("response recieved from content script");
       if (response.message == "noForm") {
         console.log("no form found disconnecting port");
@@ -70,15 +65,10 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
         return;
       }
     });
+    port.postMessage({ message: "scrape", session: session });
+    console.log("Scraping for credentials");
   }
   if (credentials) {
-    port.postMessage({
-      message: "infill",
-      payload: credentials,
-      session: session,
-    });
-    console.log("Infill message sent");
-
     port.onMessage.addListener(function (response) {
       console.log("response recieved from content script", response);
       if (response.message == "infilled") {
@@ -87,6 +77,16 @@ chrome.webNavigation.onCompleted.addListener(async function (tab) {
         return;
       }
     });
-  }
-});
 
+    console.log("Credentials found, infilling");
+    port.postMessage({
+      message: "infill",
+      payload: credentials,
+      session: session,
+    });
+    console.log("Infill message sent");
+  }
+  port.onDisconnect.addListener(() => {
+    console.log("Port disconnected");
+  });
+});

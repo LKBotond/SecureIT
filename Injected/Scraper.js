@@ -393,7 +393,7 @@ async function main() {
     const login_Button = getLoginButton(login_Form);
     if (!login_Button) {
       console.log("No form found, aborting scrape");
-      port.postMessage({ message: "no form" });
+      port.postMessage({ message: "noForm" });
       console.log("message sent");
       return;
     }
@@ -414,7 +414,7 @@ async function main() {
         console.log("Infill function fired");
         const credentials = await decryptCredentials(request.payload, session);
         port.postMessage({ message: "infilled" });
-        infill(session, credentials, login_Button);
+        setTimeout(() => infill(session, credentials, login_Button), 500);
         return;
       }
     });
