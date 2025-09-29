@@ -3,25 +3,25 @@ class AESGCM {
     this.textEncoder=textEncoder;
     this.textDecoder=textDecoder;
   }
-  async encryptString(input, Key, IV) {
+  async encryptString(input, key, iv) {
     //make The Input string into an array
     const convertedInput = this.textEncoder.encode(input);
 
     //encrypt it with AES-GCM
     const Encrypted = await window.crypto.subtle.encrypt(
-      { name: "AES-GCM", iv: this.textEncoder.encode(IV) },
-      Key,
+      { name: "AES-GCM", iv: this.textEncoder.encode(iv) },
+      key,
       convertedInput
     );
 
     //return the encrypted data
     return Encrypted;
   }
-  async decryptString(input, Key, IV) {
+  async decryptString(input, key, iv) {
     //Decrypt it with AES-GCM
     const Decrypted = await window.crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: this.textEncoder.encode(IV) },
-      Key,
+      { name: "AES-GCM", iv: this.textEncoder.encode(iv) },
+      key,
       input
     );
 
