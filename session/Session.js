@@ -1,9 +1,9 @@
-import SessionToken from "../tokens/SessionToken";
-import { saveSession, loadSession } from "../storage/DataStorage";
+import SessionToken from "../tokens/SessionToken.js";
+import { saveSession, loadSession } from "../storage/DataStorage.js";
 import {
   base64ToArrayBuffer,
   arrayBufferToBase64,
-} from "../storage/DataConvertors";
+} from "../storage/DataConvertors.js";
 class Session {
   constructor(kdf, aesgcm) {
     this.kdf = kdf;
@@ -14,7 +14,12 @@ class Session {
     let sessionKeyBase = await this.kdf.generateRandom(16);
     let sessionSalt = await this.kdf.generateRandom(16);
     let sessionIv = await this.kdf.generateRandom(16);
-    const encryptedKey = await encryptString(masterKeyBase, sessionKey, IV);
+    const sessionKey = await this.kdf.PBKDF2KeyGen(sessionKeyBase, sessionSalt);
+    const encryptedKey = await this.aesgcm.encryptString(
+      masterKeyBase,
+      sessionKey,
+      sessionIv
+    );
     const storableKey = arrayBufferToBase64(encryptedKey);
     return new SessionToken(
       userID,

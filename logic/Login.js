@@ -1,6 +1,6 @@
 import KDF from "../security/KDF.js";
 import AESGCM from "../security/Encryption.js";
-import { base64ToArrayBuffer } from "../SecureIT/Encrypt/Encrypt.js";
+import { base64ToArrayBuffer } from "../storage/DataConvertors.js";
 import { loadLocal } from "../storage/DataStorage.js";
 import Session from "../session/Session.js";
 import ResponseCodes from "./ResponseCodes.js";
@@ -18,24 +18,33 @@ export async function login(usernameAndPassword) {
   );
   const userToken = await loadLocal(usernameHash);
   if (!userToken) {
-    return responseCodes.noUserFound();
+    return responseCodes.noUserFound;
   }
-  const decryptedMasterKey = await decryptMasterKey(userToken, password);
+  const decryptedMasterKey = await decryptMasterKey(
+    userToken,
+    usernameAndPassword.password
+  );
   const validated = validatePassword(
     userToken.masterKeySalt,
-    password,
+    usernameAndPassword.password,
     decryptedMasterKey
   );
-  if (validated != responseCodes.allClear()) {
-    return responseCodes.incorrectPassword();
+  if (validated != responseCodes.allClear) {
+    return responseCodes.incorrectPassword;
   }
+  const sessionToken = await session.createSessionToken(
+    saltedMasterKey,
+    userId
+  );
 
-  return responseCodes.allClear();
+  await session.storeSession(sessionToken);
+
+  return responseCodes.allClear;
 }
 
 async function decryptMasterKey(userToken, password) {
-  const base64EncryptedPassOnRecord = userToken.base64MasterKey;
-  const encryptedPassword = base64ToArrayBuffer(base64EncryptedPassOnRecord);
+  const encryptedPassword = base64ToArrayBuffer(userToken.masterKey);
+
   const decryptionKey = await pbkdf2.PBKDF2KeyGen(
     password,
     userToken.masterKeyEncryptionSalt
@@ -50,15 +59,7 @@ async function decryptMasterKey(userToken, password) {
 async function validatePassword(masterKeySalt, password, decryptedMasterKey) {
   const currentKey = await pbkdf2.hashWithSHA256(password, masterKeySalt);
   if (!decryptedMasterKey || decryptedMasterKey != currentKey) {
-    return responseCodes.incorrectPassword();
+    return responseCodes.incorrectPassword;
   }
-
-  const sessionToken = await session.createSessionToken(
-    saltedMasterKey,
-    userId
-  );
-
-  await session.storeSession(sessionToken);
-
-  return responseCodes.allClear();
+  return responseCodes.allClear;
 }

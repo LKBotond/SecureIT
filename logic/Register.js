@@ -1,7 +1,7 @@
 import KDF from "../security/KDF.js";
 import AESGCM from "../security/Encryption.js";
 import UserToken from "../tokens/UserToken.js";
-import { arrayBufferToBase64 } from "../SecureIT/Encrypt/Encrypt.js";
+import { arrayBufferToBase64 } from "../storage/DataConvertors.js";
 import { saveLocally } from "../storage/DataStorage.js";
 import ResponseCodes from "./ResponseCodes.js";
 import Session from "../session/Session.js";
@@ -19,7 +19,7 @@ export async function register(usernameAndPassword) {
     usernameAndPassword.password,
     masterKeySalt
   );
-
+  console.log("saltedKey", saltedMasterKey);
   const masterKeyEncryptionSalt = await pbkdf2.generateRandom(16);
   const encryptionKey = await pbkdf2.PBKDF2KeyGen(
     usernameAndPassword.password,
@@ -57,5 +57,5 @@ export async function register(usernameAndPassword) {
 
   await session.storeSession(sessionToken);
 
-  return responseCodes.allClear();
+  return responseCodes.allClear;
 }

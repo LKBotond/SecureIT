@@ -1,14 +1,13 @@
-import KDF from "./security/KDF";
-import AESGCM from "./security/Encryption";
-import UserToken from "./tokens/UserToken";
-import { register } from "./logic/Register";
-import { login } from "./logic/Login";
-import ResponseCodes from "./logic/ResponseCodes";
+import { register } from "./logic/Register.js";
+import { login } from "./logic/Login.js";
+import ResponseCodes from "./logic/ResponseCodes.js";
+
 const responseCodes = new ResponseCodes();
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("message received", message);
   if (message.chain === "register") {
     register(message.data).then((result) => {
-      if (result === responseCodes.allClear()) {
+      if (result === responseCodes.allClear) {
         sendResponse({ success: true });
       } else {
         sendResponse({ success: false });
@@ -16,7 +15,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   } else if (message.chain === "login") {
     login(message.data).then((result) => {
-      if (result === responseCodes.allClear()) {
+      if (result === responseCodes.allClear) {
         sendResponse({ success: true });
       } else {
         sendResponse({ success: false });
