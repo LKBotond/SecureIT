@@ -3,6 +3,7 @@ import AESGCM from "../security/Encryption.js";
 import UserToken from "../tokens/UserToken.js";
 import { arrayBufferToBase64 } from "../SecureIT/Encrypt/Encrypt.js";
 import { saveLocally } from "../storage/DataStorage.js";
+import ResponseCodes from "./ResponseCodes.js";
 
 export async function register(usernameAndPassword) {
   const textEncoder = new TextEncoder();
@@ -44,4 +45,5 @@ export async function register(usernameAndPassword) {
   );
 
   await saveLocally(userNameHash, userToken);
+
 }
