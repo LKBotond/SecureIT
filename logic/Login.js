@@ -23,6 +23,17 @@ export async function login(usernameAndPassword) {
   if (!userToken) {
     return responseCodes.noUserFound();
   }
+  const decryptedMasterKey = await decryptMasterKey(userToken, password);
+  const validated = validatePassword(
+    userToken.masterKeySalt,
+    password,
+    decryptedMasterKey
+  );
+  if (validated != responseCodes.allClear()) {
+    return responseCodes.incorrectPassword();
+  }
+
+  return responseCodes.allClear();
 }
 
 async function decryptMasterKey(userToken, password) {
@@ -32,13 +43,17 @@ async function decryptMasterKey(userToken, password) {
     password,
     userToken.masterKeyEncryptionSalt
   );
-  try {
-    return await aesgcm.decryptString(
-      encryptedPassword,
-      decryptionKey,
-      userToken.encryptionIV
-    );
-  } catch {
+  return await aesgcm.decryptString(
+    encryptedPassword,
+    decryptionKey,
+    userToken.encryptionIV
+  );
+}
+
+async function validatePassword(masterKeySalt, password, decryptedMasterKey) {
+  const currentKey = await pbkdf2.hashWithSHA256(password, masterKeySalt);
+  if (!decryptedMasterKey || decryptedMasterKey != currentKey) {
     return responseCodes.incorrectPassword();
   }
+  return responseCodes.allClear();
 }
