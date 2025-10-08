@@ -42,7 +42,7 @@ export async function login(usernameAndPassword) {
   return responseCodes.allClear;
 }
 
-async function decryptMasterKey(userToken, password) {
+export async function decryptMasterKey(userToken, password) {
   const encryptedPassword = base64ToArrayBuffer(userToken.masterKey);
 
   const decryptionKey = await pbkdf2.PBKDF2KeyGen(
@@ -56,7 +56,7 @@ async function decryptMasterKey(userToken, password) {
   );
 }
 
-async function validatePassword(masterKeySalt, password, decryptedMasterKey) {
+export async function validatePassword(masterKeySalt, password, decryptedMasterKey) {
   const currentKey = await pbkdf2.hashWithSHA256(password, masterKeySalt);
   if (!decryptedMasterKey || decryptedMasterKey != currentKey) {
     return responseCodes.incorrectPassword;

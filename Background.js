@@ -3,24 +3,34 @@ import { login } from "./logic/Login.js";
 import ResponseCodes from "./logic/ResponseCodes.js";
 
 const responseCodes = new ResponseCodes();
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("message received", message);
-  if (message.chain === "register") {
+
+  if (message.action === "register") {
     register(message.data).then((result) => {
       if (result === responseCodes.allClear) {
         sendResponse({ success: true });
       } else {
-        sendResponse({ success: false });
+        sendResponse({
+          success: false,
+          message: "invalid username or password",
+        });
       }
     });
-  } else if (message.chain === "login") {
+  } else if (message.action === "login") {
     login(message.data).then((result) => {
       if (result === responseCodes.allClear) {
         sendResponse({ success: true });
       } else {
-        sendResponse({ success: false });
+        sendResponse({
+          success: false,
+          message: "invalid username or password",
+        });
       }
     });
+  } else if (message.action === "logout") {
+  } else if (message.action === "delete") {
   }
   return true;
 });

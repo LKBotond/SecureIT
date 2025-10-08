@@ -1,5 +1,7 @@
+import { sendMessage } from "../../storage/Messages";
+
 document.querySelectorAll("button").forEach((button) => {
-  button.addEventListener("click", (event) => {
+  button.addEventListener("click", async (event) => {
     button.disabled = true;
     let usernameAndPassword = collectFormData();
 
@@ -21,21 +23,28 @@ document.querySelectorAll("button").forEach((button) => {
     }
 
     if (button.id === "Login") {
-      chrome.runtime.sendMessage(
-        { chain: "login", data: usernameAndPassword },
-        (response) => {
-          alert(response);
-          button.disabled = false;
-        }
-      );
+      const response = await sendMessage({
+        action: "login",
+        data: usernameAndPassword,
+      });
+      if (response.success) {
+        chrome.action.setPopup({ popup: "UI/HTML/Interior.html" });
+        window.location.href = "../HTML/Interior.html";
+      } else {
+        alert(response.message);
+      }
     } else if (button.id === "Register") {
-      chrome.runtime.sendMessage(
-        { chain: "register", data: usernameAndPassword },
-        (response) => {
-          alert(response);
-          button.disabled = false;
-        }
-      );
+      const response = sendMessage({
+        action: "register",
+        data: usernameAndPassword,
+      });
+      if (response.success) {
+        chrome.action.setPopup({ popup: "UI/HTML/Interior.html" });
+        window.location.href = "../HTML/Interior.html";
+      } else {
+        alert(response.message);
+      }
+      button.disabled = false;
     }
   });
 });
