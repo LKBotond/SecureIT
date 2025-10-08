@@ -1,11 +1,8 @@
 import KDF from "../security/KDF.js";
 import AESGCM from "../security/Encryption.js";
-import UserToken from "../tokens/UserToken.js";
-import {
-  arrayBufferToBase64,
-  base64ToArrayBuffer,
-} from "../SecureIT/Encrypt/Encrypt.js";
+import { base64ToArrayBuffer } from "../SecureIT/Encrypt/Encrypt.js";
 import { loadLocal } from "../storage/DataStorage.js";
+import Session from "../session/Session.js";
 import ResponseCodes from "./ResponseCodes.js";
 
 const responseCodes = new ResponseCodes();
@@ -62,6 +59,6 @@ async function validatePassword(masterKeySalt, password, decryptedMasterKey) {
   );
 
   await session.storeSession(sessionToken);
-  
+
   return responseCodes.allClear();
 }
