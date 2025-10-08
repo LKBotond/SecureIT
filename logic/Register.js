@@ -5,6 +5,8 @@ import { arrayBufferToBase64 } from "../SecureIT/Encrypt/Encrypt.js";
 import { saveLocally } from "../storage/DataStorage.js";
 import ResponseCodes from "./ResponseCodes.js";
 
+const responseCodes = new ResponseCodes();
+
 export async function register(usernameAndPassword) {
   const textEncoder = new TextEncoder();
   const textDecoder = new TextDecoder();
@@ -37,6 +39,7 @@ export async function register(usernameAndPassword) {
     masterKeySalt,
     encryptionKey,
     masterKeyEncryptionSalt,
+    encryptionIV,
     userId
   );
 
@@ -46,4 +49,5 @@ export async function register(usernameAndPassword) {
 
   await saveLocally(userNameHash, userToken);
 
+  return responseCodes.allClear();
 }
