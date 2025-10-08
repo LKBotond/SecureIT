@@ -4,15 +4,16 @@ import UserToken from "../tokens/UserToken.js";
 import { arrayBufferToBase64 } from "../SecureIT/Encrypt/Encrypt.js";
 import { saveLocally } from "../storage/DataStorage.js";
 import ResponseCodes from "./ResponseCodes.js";
+import Session from "../session/Session.js";
 
 const responseCodes = new ResponseCodes();
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+const pbkdf2 = new KDF(textEncoder);
+const aesgcm = new AESGCM(textEncoder, textDecoder);
+const session = new Session(pbkdf2, aesgcm);
 
 export async function register(usernameAndPassword) {
-  const textEncoder = new TextEncoder();
-  const textDecoder = new TextDecoder();
-  const pbkdf2 = new KDF(textEncoder);
-  const aesgcm = new AESGCM(textEncoder, textDecoder);
-
   const masterKeySalt = await pbkdf2.generateRandom(16);
   const saltedMasterKey = await pbkdf2.hashWithSHA256(
     usernameAndPassword.password,
@@ -48,6 +49,13 @@ export async function register(usernameAndPassword) {
   );
 
   await saveLocally(userNameHash, userToken);
+
+  const sessionToken = await session.createSessionToken(
+    saltedMasterKey,
+    userId
+  );
+
+  await session.storeSession(sessionToken);
 
   return responseCodes.allClear();
 }
