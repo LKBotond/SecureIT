@@ -1,44 +1,50 @@
-import SessionToken from "../tokens/SessionToken";
-import { saveSession, loadSession } from "../storage/DataStorage";
+import SessionToken from "../tokens/SessionToken.js";
+import { saveSession, loadSession } from "../storage/DataStorage.js";
 import {
   base64ToArrayBuffer,
   arrayBufferToBase64,
-} from "../storage/DataConvertors";
+} from "../storage/DataConvertors.js";
 class Session {
   constructor(kdf, aesgcm) {
     this.kdf = kdf;
     this.aesgcm = aesgcm;
   }
 
-  async createSession(masterKeyBase, UserID) {
+  async createSessionToken(masterKeyBase, userID) {
     let sessionKeyBase = await this.kdf.generateRandom(16);
     let sessionSalt = await this.kdf.generateRandom(16);
     let sessionIv = await this.kdf.generateRandom(16);
-    const encryptedKey = await encryptString(masterKeyBase, sessionKey, IV);
+    const sessionKey = await this.kdf.PBKDF2KeyGen(sessionKeyBase, sessionSalt);
+    const encryptedKey = await this.aesgcm.encryptString(
+      masterKeyBase,
+      sessionKey,
+      sessionIv
+    );
     const storableKey = arrayBufferToBase64(encryptedKey);
     return new SessionToken(
-      UserID,
+      userID,
       sessionKeyBase,
       sessionSalt,
       sessionIv,
       storableKey
     );
   }
+
   async storeSession(sessionToken) {
-    let sessionId = this.kdf.generateRandom(8);
-    await saveSession(sessionId, sessionToken);
-    return sessionId;
+    await saveSession("session", sessionToken);
   }
 
-  async loadSession(sessionID) {
-    return await loadSession(sessionID);
+  async getSession() {
+    return await loadSession("session");
   }
+
   async getSessionKey(sessionToken) {
     return await this.kdf.PBKDF2KeyGen(
       sessionToken.sessionKeyBase,
       sessionToken.sessionSalt
     );
   }
+
   async decryptMasterKey(sessiontoken) {
     const sessionKey = await this.getSessionKey(sessiontoken);
     const buffer = base64ToArrayBuffer(sessiontoken.storableKey);

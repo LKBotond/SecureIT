@@ -3,7 +3,7 @@ class KDF {
     this.encoder = textEncoder;
   }
   async PBKDF2KeyGen(pass, Salt) {
-    const keyMaterial = await window.crypto.subtle.importKey(
+    const keyMaterial = await self.crypto.subtle.importKey(
       "raw",
       this.encoder.encode(pass),
       { name: "PBKDF2" },
@@ -11,7 +11,7 @@ class KDF {
       ["deriveKey"]
     );
 
-    const key = await window.crypto.subtle.deriveKey(
+    const key = await self.crypto.subtle.deriveKey(
       {
         name: "PBKDF2",
         salt: this.encoder.encode(Salt),
@@ -29,13 +29,13 @@ class KDF {
   async hashWithSHA256(input, salt = null) {
     let data = null;
     if (salt) {
-      data = this.encoder.encode(interSplice(input, salt));
+      data = this.encoder.encode(this.interSplice(input, salt));
     } else {
       data = this.encoder.encode(input);
     }
 
     //Hash it with SHA-256
-    const hashBuffer = await window.crypto.subtle.digest("SHA-256", data);
+    const hashBuffer = await  self.crypto.subtle.digest("SHA-256", data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray
       .map((byte) => byte.toString(16).padStart(2, "0"))

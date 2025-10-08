@@ -1,16 +1,16 @@
 class UserToken {
   constructor(
     masterKey,
-    masterSalt,
+    masterKeySalt,
     encryptionKey,
-    encryptionSalt,
+    masterKeyEncryptionSalt,
     encryptionIV,
     userId
   ) {
     this.masterKey = masterKey;
-    this.masterSalt = masterSalt;
+    this.masterKeySalt = masterKeySalt;
     this.encryptionKey = encryptionKey;
-    this.encryptionSalt = encryptionSalt;
+    this.masterKeyEncryptionSalt = masterKeyEncryptionSalt;
     this.encryptionIV = encryptionIV;
     this.userId = userId;
   }
