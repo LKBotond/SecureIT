@@ -4,7 +4,7 @@
   "description": "A locally hosted password manager.",
   "version": "1.0",
   "manifest_version": 3,
-  "permissions": ["storage"],
+  "permissions": ["storage", "webNavigation", "tabs"],
   "background": {
     "service_worker": "Background.js",
     "type": "module"

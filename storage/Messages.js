@@ -10,3 +10,14 @@ export async function sendMessage(message) {
   });
 }
 
+export async function sendTargetedMessage(message, target) {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.sendMessage(target, message, (response) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+}
