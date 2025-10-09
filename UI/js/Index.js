@@ -1,5 +1,7 @@
+import { sendMessage } from "../../storage/Messages.js";
+
 document.querySelectorAll("button").forEach((button) => {
-  button.addEventListener("click", (event) => {
+  button.addEventListener("click", async (event) => {
     button.disabled = true;
     let usernameAndPassword = collectFormData();
 
@@ -7,35 +9,40 @@ document.querySelectorAll("button").forEach((button) => {
     console.log("Button clicked:", event.target);
 
     if (!integrity) {
-      console.log("Form data is not valid");
       alert("Missing username or password");
       button.disabled = false;
       return;
     }
 
     if (illegalCharacterFound(usernameAndPassword)) {
-      console.log("Form data is not valid");
       alert("Invalid characters found within username or password");
       button.disabled = false;
       return;
     }
 
-    if (button.id === "Login") {
-      chrome.runtime.sendMessage(
-        { chain: "login", data: usernameAndPassword },
-        (response) => {
-          alert(response);
-          button.disabled = false;
-        }
-      );
-    } else if (button.id === "Register") {
-      chrome.runtime.sendMessage(
-        { chain: "register", data: usernameAndPassword },
-        (response) => {
-          alert(response);
-          button.disabled = false;
-        }
-      );
+    if (button.id === "login") {
+      const response = await sendMessage({
+        action: "login",
+        data: usernameAndPassword,
+      });
+      if (response.success) {
+        chrome.action.setPopup({ popup: "UI/HTML/Interior.html" });
+        window.location.href = "../HTML/Interior.html";
+      } else {
+        alert(response.message);
+      }
+    } else if (button.id === "register") {
+      const response = await sendMessage({
+        action: "register",
+        data: usernameAndPassword,
+      });
+      if (response.success) {
+        chrome.action.setPopup({ popup: "UI/HTML/Interior.html" });
+        window.location.href = "../HTML/Interior.html";
+      } else {
+        alert(response.message);
+      }
+      button.disabled = false;
     }
   });
 });
