@@ -11,13 +11,12 @@ async function sendMessage(message) {
   });
 }
 
-//Searchers
-const name_Types = ["text", "email", "tel"];
-const pass_Type = "password";
+//Searcher Primitives
+const nameTypes = ["text", "email", "tel"];
+const passType = "password";
 
-
-function gettNameField(input) {
-  if (!name_Types.includes(input.type)) {
+function getNameField(input) {
+  if (!nameTypes.includes(input.type)) {
     return false;
   }
   const attributes = ["name", "id", "placeholder", "class"];
@@ -34,7 +33,7 @@ function gettNameField(input) {
 }
 
 function getPassField(input) {
-  if (input.type !== pass_Type) {
+  if (input.type !== passType) {
     return false;
   }
   const attributes = ["name", "id", "placeholder", "class"];
@@ -48,7 +47,7 @@ function getPassField(input) {
   return false;
 }
 
-function getLoginButton(form) {
+function findLoginButton(form) {
   const buttons = form.querySelectorAll("button");
   if (!buttons) {
     console.log("No buttons found");
@@ -74,4 +73,61 @@ function getLoginButton(form) {
   }
   return null;
 }
+
+function searchFormInputs(form) {
+  const inputs = form.querySelectorAll("input");
+  const userName = null;
+  const password = null;
+  inputs.forEach((input) => {
+    if (!userName) {
+      userName = getNameField(input);
+    }
+    if (!password) {
+      userName = getPassField(input);
+    }
+
+    if (userName && password) {
+      return { user: userName, pass: password };
+    }
+  });
+}
 //----------------------------------------------------------------------------------
+
+function findLoginForm() {
+  const forms = document.querySelectorAll("form");
+  if (!forms) {
+    return null;
+  }
+
+  for (const form of forms) {
+    const fields = searchFormInputs(form);
+    return { form: form, userField: fields.user, passField: fields.pass };
+  }
+}
+
+function getinputValue(field) {
+  return field.value;
+}
+
+function infill(credentials, autolog) {
+  const loginFormAndFields = findLoginForm();
+  if (!loginFormAndFields) {
+    return;
+  }
+  const loginForm = loginFormAndFields.form;
+  const userField = loginFormAndFields.userField;
+  const passField = loginFormAndFields.passField;
+  const loginButton = findLoginButton(loginForm);
+
+  userField.value = credentials.userName;
+  passField.value = credentials.password;
+  if (autolog) {
+    loginButton.click();
+  }
+}
+
+function getCredentials(userField, passField) {
+  return { userName: userField.value, password: passField.value };
+}
+
+
