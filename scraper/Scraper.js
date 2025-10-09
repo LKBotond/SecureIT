@@ -1,17 +1,3 @@
-//necesary Utility functions:
-async function sendMessage(message) {
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage(message, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(response);
-      }
-    });
-  });
-}
-
-//Searcher Primitives
 const nameTypes = ["text", "email", "tel"];
 const passType = "password";
 
@@ -57,7 +43,7 @@ function findLoginButton(form) {
   const keywords = ["log", "in", "sign", "next"];
   for (const button of buttons) {
     for (const keyword of keywords) {
-      const value = (button.getAttribute(attr) || "").toLowerCase();
+      const value = (button.getAttribute(attributes) || "").toLowerCase();
       if (value.includes(keyword)) {
         return button;
       }
@@ -83,7 +69,7 @@ function searchFormInputs(form) {
       userName = getNameField(input);
     }
     if (!password) {
-      userName = getPassField(input);
+      password = getPassField(input);
     }
 
     if (userName && password) {
@@ -91,7 +77,6 @@ function searchFormInputs(form) {
     }
   });
 }
-//----------------------------------------------------------------------------------
 
 function findLoginForm() {
   const forms = document.querySelectorAll("form");
@@ -130,4 +115,32 @@ function getCredentials(userField, passField) {
   return { userName: userField.value, password: passField.value };
 }
 
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  const loginFormAndFields = findLoginForm();
 
+  if (!loginFormAndFields) {
+    sendResponse({ status: false, data: "noForm" });
+  }
+
+  const loginButton = findLoginButton(loginFormAndFields.form);
+
+  if (!loginButton) {
+    sendResponse({ status: false, data: "noLoginButton" });
+  }
+
+  if (message.action == "scrape") {
+    loginButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      const credentials = getCredentials(
+        loginFormAndFields.userField,
+        loginFormAndFields.passField
+      );
+      sendResponse({ status: true, data: credentials });
+      loginButton.click();
+    });
+  } else if (message.action == "infill") {
+    infill(message.credentials, message.autolog);
+    sendResponse({ success: true });
+  }
+  return true;
+});
