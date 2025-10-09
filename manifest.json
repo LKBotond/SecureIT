@@ -1,0 +1,22 @@
+{
+  "name": "SecureIT2",
+  "short_name": "SCIT",
+  "description": "A locally hosted password manager.",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["storage"],
+  "background": {
+    "service_worker": "Background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "UI/HTML/Index.html"
+  },
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"]
+    }
+  ]
+}
