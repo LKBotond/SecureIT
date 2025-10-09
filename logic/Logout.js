@@ -3,9 +3,9 @@ import {
   deleteLocalEntry,
   loadSession,
   loadLocal,
-} from "../storage/DataStorage";
-import ResponseCodes from "./ResponseCodes";
-import { decryptMasterKey, validatePassword } from "./Login";
+} from "../storage/DataStorage.js";
+import ResponseCodes from "./ResponseCodes.js";
+import { decryptMasterKey, validatePassword } from "./Login.js";
 
 const responseCodes = new ResponseCodes();
 
@@ -26,7 +26,7 @@ export async function deleteUser(susPass) {
     deleteSessionEntry("session");
     return responseCodes.incorrectPassword;
   }
-  await deleteLocalEntry(sessionToken.userId); //deletes storedd passwords
+  //await deleteLocalEntry(sessionToken.userId); //deletes storedd passwords
   await deleteLocalEntry(sessionToken.userId + "autolog"); // deletes autologin switch
   await deleteLocalEntry(sessionToken.userNameHash); //deletes account
   deleteSessionEntry("session"); //deletes session

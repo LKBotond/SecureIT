@@ -19,7 +19,6 @@ export async function register(usernameAndPassword) {
     usernameAndPassword.password,
     masterKeySalt
   );
-  console.log("saltedKey", saltedMasterKey);
   const masterKeyEncryptionSalt = await pbkdf2.generateRandom(16);
   const encryptionKey = await pbkdf2.PBKDF2KeyGen(
     usernameAndPassword.password,
@@ -34,7 +33,7 @@ export async function register(usernameAndPassword) {
   );
 
   const base64MasterKey = arrayBufferToBase64(encryptedPassword);
-  const userId = pbkdf2.generateRandom(16);
+  const userId = await pbkdf2.generateRandom(16);
   const userToken = new UserToken(
     base64MasterKey,
     masterKeySalt,

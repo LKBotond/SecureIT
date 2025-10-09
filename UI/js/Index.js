@@ -9,14 +9,12 @@ document.querySelectorAll("button").forEach((button) => {
     console.log("Button clicked:", event.target);
 
     if (!integrity) {
-      console.log("Form data is not valid");
       alert("Missing username or password");
       button.disabled = false;
       return;
     }
 
     if (illegalCharacterFound(usernameAndPassword)) {
-      console.log("Form data is not valid");
       alert("Invalid characters found within username or password");
       button.disabled = false;
       return;
@@ -27,7 +25,6 @@ document.querySelectorAll("button").forEach((button) => {
         action: "login",
         data: usernameAndPassword,
       });
-      console.log(response);
       if (response.success) {
         chrome.action.setPopup({ popup: "UI/HTML/Interior.html" });
         window.location.href = "../HTML/Interior.html";

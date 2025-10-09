@@ -1,24 +1,31 @@
-import { sendMessage } from "../../storage/Messages";
+import { getAutolog } from "../../logic/Autolog.js";
+import { sendMessage } from "../../storage/Messages.js";
+await initializeAutolog();
 
-document.getElementById("Logout").addEventListener("click", async () => {
+document.getElementById("logout").addEventListener("click", async (event) => {
+  console.log("Button clicked:", event.target);
   handleLogout();
 });
 
-document.getElementById("Delete").addEventListener("click", async () => {
+document.getElementById("delete").addEventListener("click", async (event) => {
+  console.log("Button clicked:", event.target);
   await handleUserDeletion();
 });
 
-document.getElementById("Autolog").addEventListener("click", async () => {
+document.getElementById("autolog").addEventListener("click", async (event) => {
+  console.log("Button clicked:", event.target);
   await handleAutoLog();
 });
 
-document.getElementById("Update").addEventListener("click", async () => {});
+document
+  .getElementById("update")
+  .addEventListener("click", async (event) => {});
 
 async function handleLogout() {
   const response = await sendMessage({ action: "logout" });
   if (response.success) {
-    chrome.action.setPopup({ popup: "UI/HTML/Login.html" });
-    window.location.href = "../HTML/Login.html";
+    chrome.action.setPopup({ popup: "UI/HTML/Index.html" });
+    window.location.href = "../HTML/Index.html";
   } else {
     alert("Logout Failed");
   }
@@ -32,12 +39,23 @@ async function handleUserDeletion() {
   } else {
     alert("Invalid password, You've been logged out");
   }
-  chrome.action.setPopup({ popup: "UI/HTML/Login.html" });
-  window.location.href = "../HTML/Login.html";
+  chrome.action.setPopup({ popup: "UI/HTML/Index.html" });
+  window.location.href = "../HTML/Index.html";
 }
 async function handleAutoLog() {
   const response = await sendMessage({ action: "switch" });
-  if (response.autolog) {
+  console.log(response);
+  if (response.status == true) {
+    document.getElementById("AutologTXT").textContent = "Enabled";
+  } else {
+    document.getElementById("AutologTXT").textContent = "Disabled";
+  }
+}
+
+async function initializeAutolog() {
+  const status = await getAutolog();
+  console.log(status);
+  if (status == true) {
     document.getElementById("AutologTXT").textContent = "Enabled";
   } else {
     document.getElementById("AutologTXT").textContent = "Disabled";

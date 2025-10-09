@@ -48,7 +48,7 @@ export async function loadSession(key) {
 
 export async function deleteLocalEntry(key) {
   return new Promise((resolve, reject) => {
-    chrome.storage.storage.remove(key, () => {
+    chrome.storage.local.remove(key, () => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError);
       }

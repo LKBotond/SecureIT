@@ -36,7 +36,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     });
   } else if (message.action === "logout") {
-    logout.then(() => {
+     logout().then(() => {
       sendResponse({ success: true });
       console.log("Logout response sent, status", true);
     });

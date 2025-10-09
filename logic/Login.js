@@ -16,15 +16,18 @@ export async function login(usernameAndPassword) {
   const usernameHash = await pbkdf2.hashWithSHA256(
     usernameAndPassword.username
   );
+
   const userToken = await loadLocal(usernameHash);
   if (!userToken) {
     return responseCodes.noUserFound;
   }
+
   const decryptedMasterKey = await decryptMasterKey(
     userToken,
     usernameAndPassword.password
   );
-  const validated = validatePassword(
+
+  const validated = await validatePassword(
     userToken.masterKeySalt,
     usernameAndPassword.password,
     decryptedMasterKey
@@ -33,8 +36,9 @@ export async function login(usernameAndPassword) {
     return responseCodes.incorrectPassword;
   }
   const sessionToken = await session.createSessionToken(
-    saltedMasterKey,
-    userId
+    decryptedMasterKey,
+    userToken.userId,
+    usernameHash
   );
 
   await session.storeSession(sessionToken);
@@ -55,7 +59,11 @@ export async function decryptMasterKey(userToken, password) {
   );
 }
 
-export async function validatePassword(masterKeySalt, password, decryptedMasterKey) {
+export async function validatePassword(
+  masterKeySalt,
+  password,
+  decryptedMasterKey
+) {
   const currentKey = await pbkdf2.hashWithSHA256(password, masterKeySalt);
   if (!decryptedMasterKey || decryptedMasterKey != currentKey) {
     return responseCodes.incorrectPassword;
