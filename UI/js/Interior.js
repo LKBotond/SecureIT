@@ -1,17 +1,28 @@
-import { logout } from "../../logic/Logout";
 import { sendMessage } from "../../storage/Messages";
 
 document.getElementById("Logout").addEventListener("click", async () => {
-  const response = await sendMessage({ action: "logout" });
+  handleLogout();
 });
 
 document.getElementById("Delete").addEventListener("click", async () => {
   await handleUserDeletion();
 });
 
-document.getElementById("Autolog").addEventListener("click", async () => {});
+document.getElementById("Autolog").addEventListener("click", async () => {
+  await handleAutoLog();
+});
 
 document.getElementById("Update").addEventListener("click", async () => {});
+
+async function handleLogout() {
+  const response = await sendMessage({ action: "logout" });
+  if (response.success) {
+    chrome.action.setPopup({ popup: "UI/HTML/Login.html" });
+    window.location.href = "../HTML/Login.html";
+  } else {
+    alert("Logout Failed");
+  }
+}
 
 async function handleUserDeletion() {
   const susPass = prompt("Enter your password to confirm your decision:");
@@ -23,4 +34,12 @@ async function handleUserDeletion() {
   }
   chrome.action.setPopup({ popup: "UI/HTML/Login.html" });
   window.location.href = "../HTML/Login.html";
+}
+async function handleAutoLog() {
+  const response = await sendMessage({ action: "switch" });
+  if (response.autolog) {
+    document.getElementById("AutologTXT").textContent = "Enabled";
+  } else {
+    document.getElementById("AutologTXT").textContent = "Disabled";
+  }
 }

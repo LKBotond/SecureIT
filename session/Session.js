@@ -10,7 +10,7 @@ class Session {
     this.aesgcm = aesgcm;
   }
 
-  async createSessionToken(masterKeyBase, userID) {
+  async createSessionToken(masterKeyBase, userID, userNameHash) {
     let sessionKeyBase = await this.kdf.generateRandom(16);
     let sessionSalt = await this.kdf.generateRandom(16);
     let sessionIv = await this.kdf.generateRandom(16);
@@ -23,9 +23,10 @@ class Session {
     const storableKey = arrayBufferToBase64(encryptedKey);
     return new SessionToken(
       userID,
-      sessionKeyBase,
+      userNameHash,
       sessionSalt,
       sessionIv,
+      sessionKeyBase,
       storableKey
     );
   }

@@ -49,10 +49,11 @@ export async function register(usernameAndPassword) {
   );
 
   await saveLocally(userNameHash, userToken);
-
+  await saveLocally(userId + "autolog", true);
   const sessionToken = await session.createSessionToken(
     saltedMasterKey,
-    userId
+    userId,
+    userNameHash
   );
 
   await session.storeSession(sessionToken);
