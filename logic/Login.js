@@ -44,7 +44,6 @@ export async function login(usernameAndPassword) {
 
 export async function decryptMasterKey(userToken, password) {
   const encryptedPassword = base64ToArrayBuffer(userToken.masterKey);
-
   const decryptionKey = await pbkdf2.PBKDF2KeyGen(
     password,
     userToken.masterKeyEncryptionSalt

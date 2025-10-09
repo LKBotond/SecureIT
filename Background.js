@@ -11,22 +11,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     register(message.data).then((result) => {
       if (result === responseCodes.allClear) {
         sendResponse({ success: true });
+        console.log("Register response sent, status", true);
       } else {
         sendResponse({
           success: false,
           message: "invalid username or password",
         });
+        console.log("Register response sent, status", false);
       }
     });
   } else if (message.action === "login") {
     login(message.data).then((result) => {
       if (result === responseCodes.allClear) {
         sendResponse({ success: true });
+        console.log("Login response sent, status", true);
       } else {
         sendResponse({
           success: false,
           message: "invalid username or password",
         });
+        console.log("Login response sent, status", false);
       }
     });
   } else if (message.action === "logout") {

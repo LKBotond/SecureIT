@@ -1,4 +1,4 @@
-import { sendMessage } from "../../storage/Messages";
+import { sendMessage } from "../../storage/Messages.js";
 
 document.querySelectorAll("button").forEach((button) => {
   button.addEventListener("click", async (event) => {
@@ -22,19 +22,20 @@ document.querySelectorAll("button").forEach((button) => {
       return;
     }
 
-    if (button.id === "Login") {
+    if (button.id === "login") {
       const response = await sendMessage({
         action: "login",
         data: usernameAndPassword,
       });
+      console.log(response);
       if (response.success) {
         chrome.action.setPopup({ popup: "UI/HTML/Interior.html" });
         window.location.href = "../HTML/Interior.html";
       } else {
         alert(response.message);
       }
-    } else if (button.id === "Register") {
-      const response = sendMessage({
+    } else if (button.id === "register") {
+      const response = await sendMessage({
         action: "register",
         data: usernameAndPassword,
       });
