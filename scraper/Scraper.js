@@ -1,8 +1,46 @@
-const nameTypes = ["text", "email", "tel"];
-const passType = "password";
+async function main() {
+  const loginFormAndFields = findLoginForm();
+  if (!loginFormAndFields) {
+    return;
+  }
+  const loginButton = findLoginButton(loginFormAndFields.form);
+  if (!loginButton) {
+    return;
+  }
+
+  const port = chrome.runtime.connect({ name: "formFound" });
+
+  port.onMessage.addListener(async (message) => {
+    switch (message.action) {
+      case "scrape":
+        console.log("scraping");
+        const credentials = await scrapeCredentials(
+          loginButton,
+          loginFormAndFields
+        );
+        console.log("sending Credentials: ", credentials);
+        port.postMessage(credentials);
+        break;
+      case "infill":
+        infill(message.credentials, message.autolog);
+        break;
+      case "login":
+        console.log("Login message received");
+        loginButton.click();
+        break;
+      default:
+        port.disconnect();
+    }
+  });
+}
+
+//HELPERS
+//Searchers
+const NAME_TYPES = ["text", "email", "tel"];
+const PASS_TYPE = "password";
 
 function getNameField(input) {
-  if (!nameTypes.includes(input.type)) {
+  if (!NAME_TYPES.includes(input.type)) {
     return false;
   }
   const attributes = ["name", "id", "placeholder", "class"];
@@ -19,7 +57,7 @@ function getNameField(input) {
 }
 
 function getPassField(input) {
-  if (input.type !== passType) {
+  if (input.type !== PASS_TYPE) {
     return false;
   }
   const attributes = ["name", "id", "placeholder", "class"];
@@ -62,9 +100,9 @@ function findLoginButton(form) {
 
 function searchFormInputs(form) {
   const inputs = form.querySelectorAll("input");
-  const userName = null;
-  const password = null;
-  inputs.forEach((input) => {
+  let userName = null;
+  let password = null;
+  for (const input of inputs) {
     if (!userName) {
       userName = getNameField(input);
     }
@@ -73,9 +111,10 @@ function searchFormInputs(form) {
     }
 
     if (userName && password) {
-      return { user: userName, pass: password };
+      break;
     }
-  });
+  }
+  return { user: userName, pass: password };
 }
 
 function findLoginForm() {
@@ -89,11 +128,16 @@ function findLoginForm() {
     return { form: form, userField: fields.user, passField: fields.pass };
   }
 }
-
+//Getters
 function getinputValue(field) {
   return field.value;
 }
 
+function getCredentials(userField, passField) {
+  return { userName: userField.value, password: passField.value };
+}
+
+//Interactors
 function infill(credentials, autolog) {
   const loginFormAndFields = findLoginForm();
   if (!loginFormAndFields) {
@@ -111,36 +155,20 @@ function infill(credentials, autolog) {
   }
 }
 
-function getCredentials(userField, passField) {
-  return { userName: userField.value, password: passField.value };
-}
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  const loginFormAndFields = findLoginForm();
-
-  if (!loginFormAndFields) {
-    sendResponse({ status: false, data: "noForm" });
-  }
-
-  const loginButton = findLoginButton(loginFormAndFields.form);
-
-  if (!loginButton) {
-    sendResponse({ status: false, data: "noLoginButton" });
-  }
-
-  if (message.action == "scrape") {
-    loginButton.addEventListener("click", (event) => {
+function scrapeCredentials(loginButton, loginFormAndFields) {
+  return new Promise((resolve) => {
+    loginButton.addEventListener("click", function intercept(event) {
       event.preventDefault();
+      loginButton.removeEventListener("click", intercept);
       const credentials = getCredentials(
         loginFormAndFields.userField,
         loginFormAndFields.passField
       );
-      sendResponse({ status: true, data: credentials });
-      loginButton.click();
+      resolve(credentials);
     });
-  } else if (message.action == "infill") {
-    infill(message.credentials, message.autolog);
-    sendResponse({ success: true });
-  }
-  return true;
-});
+  });
+}
+
+(async () => {
+  await main();
+})();

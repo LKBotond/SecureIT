@@ -28,6 +28,7 @@ export async function deleteUser(susPass) {
   }
   //await deleteLocalEntry(sessionToken.userId); //deletes storedd passwords
   await deleteLocalEntry(sessionToken.userId + "autolog"); // deletes autologin switch
+  await deleteLocalEntry(sessionToken.userId); //deletes vault
   await deleteLocalEntry(sessionToken.userNameHash); //deletes account
   deleteSessionEntry("session"); //deletes session
   return responseCodes.allClear;

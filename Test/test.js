@@ -47,9 +47,9 @@ document.addEventListener("DOMContentLoaded", function () {
       password = form.querySelector("#password").value;
       console.log("form submitted with", username, password);
       if (current.login(username, password)) {
-        window.location.href = "Test_Success.html";
+        window.location.href = "TestSuccess.html";
       } else {
-        window.location.href = "Test_Failed.html";
+        window.location.href = "TestFailed.html";
       }
     };
   }

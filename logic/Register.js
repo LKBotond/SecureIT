@@ -46,7 +46,8 @@ export async function register(usernameAndPassword) {
   const userNameHash = await pbkdf2.hashWithSHA256(
     usernameAndPassword.username
   );
-
+  const emptyUrlList = [];
+  await saveLocally(userId, emptyUrlList);
   await saveLocally(userNameHash, userToken);
   await saveLocally(userId + "autolog", true);
   const sessionToken = await session.createSessionToken(
@@ -56,6 +57,5 @@ export async function register(usernameAndPassword) {
   );
 
   await session.storeSession(sessionToken);
-
   return responseCodes.allClear;
 }
