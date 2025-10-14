@@ -1,9 +1,18 @@
 class CredentialToken {
-  constructor(nameSalt, passSalt, encryptedUsername, encryptedPassword) {
-    this.nameSalt = nameSalt;
+  constructor(
+    passSalt,
+    nameIV,
+    passIV,
+    encryptedUserName,
+    encryptedPassword,
+    url
+  ) {
     this.passSalt = passSalt;
-    this.encryptedUsername = encryptedUsername;
+    this.nameIV = nameIV;
+    this.passIV = passIV;
+    this.encryptedUserName = encryptedUserName;
     this.encryptedPassword = encryptedPassword;
+    this.url = url;
   }
 }
 export default CredentialToken;

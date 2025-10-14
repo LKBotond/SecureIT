@@ -46,13 +46,13 @@ class Session {
     );
   }
 
-  async decryptMasterKey(sessiontoken) {
-    const sessionKey = await this.getSessionKey(sessiontoken);
-    const buffer = base64ToArrayBuffer(sessiontoken.storableKey);
+  async decryptMasterKey(sessionToken) {
+    const sessionKey = await this.getSessionKey(sessionToken);
+    const buffer = base64ToArrayBuffer(sessionToken.encryptedMasterKey);
     return await this.aesgcm.decryptString(
       buffer,
       sessionKey,
-      sessiontoken.sessionIv
+      sessionToken.sessionIV
     );
   }
 }
