@@ -11,9 +11,9 @@ class Session {
   }
 
   async createSessionToken(masterKeyBase, userID, userNameHash) {
-    let sessionKeyBase = await this.kdf.generateRandom(16);
-    let sessionSalt = await this.kdf.generateRandom(16);
-    let sessionIv = await this.kdf.generateRandom(16);
+    let sessionKeyBase = await this.kdf.generateRandom();
+    let sessionSalt = await this.kdf.generateRandom();
+    let sessionIv = await this.kdf.generateRandom();
     const sessionKey = await this.kdf.PBKDF2KeyGen(sessionKeyBase, sessionSalt);
     const encryptedKey = await this.aesgcm.encryptString(
       masterKeyBase,

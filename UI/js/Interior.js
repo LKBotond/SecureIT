@@ -17,9 +17,10 @@ document.getElementById("autolog").addEventListener("click", async (event) => {
   await handleAutoLog();
 });
 
-document
-  .getElementById("update")
-  .addEventListener("click", async (event) => {});
+document.getElementById("update").addEventListener("click", async (event) => {
+  console.log("Button clicked:", event.target);
+  window.location.href = "../HTML/Correction.html";
+});
 
 async function handleLogout() {
   const response = await sendMessage({ action: "logout" });
@@ -44,7 +45,6 @@ async function handleUserDeletion() {
 }
 async function handleAutoLog() {
   const response = await sendMessage({ action: "switch" });
-  console.log(response);
   if (response.status == true) {
     document.getElementById("AutologTXT").textContent = "Enabled";
   } else {
@@ -54,7 +54,6 @@ async function handleAutoLog() {
 
 async function initializeAutolog() {
   const status = await getAutolog();
-  console.log(status);
   if (status == true) {
     document.getElementById("AutologTXT").textContent = "Enabled";
   } else {

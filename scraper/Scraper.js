@@ -18,7 +18,6 @@ async function main() {
           loginButton,
           loginFormAndFields
         );
-        console.log("sending Credentials: ", credentials);
         port.postMessage(credentials);
         break;
       case "infill":

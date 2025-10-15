@@ -14,18 +14,18 @@ const aesgcm = new AESGCM(textEncoder, textDecoder);
 const session = new Session(pbkdf2, aesgcm);
 
 export async function register(usernameAndPassword) {
-  const masterKeySalt = await pbkdf2.generateRandom(16);
+  const masterKeySalt = await pbkdf2.generateRandom();
   const saltedMasterKey = await pbkdf2.hashWithSHA256(
     usernameAndPassword.password,
     masterKeySalt
   );
-  const masterKeyEncryptionSalt = await pbkdf2.generateRandom(16);
+  const masterKeyEncryptionSalt = await pbkdf2.generateRandom();
   const encryptionKey = await pbkdf2.PBKDF2KeyGen(
     usernameAndPassword.password,
     masterKeyEncryptionSalt
   );
 
-  const encryptionIV = await pbkdf2.generateRandom(16);
+  const encryptionIV = await pbkdf2.generateRandom();
   const encryptedPassword = await aesgcm.encryptString(
     saltedMasterKey,
     encryptionKey,
@@ -33,11 +33,10 @@ export async function register(usernameAndPassword) {
   );
 
   const base64MasterKey = arrayBufferToBase64(encryptedPassword);
-  const userId = await pbkdf2.generateRandom(16);
+  const userId = await pbkdf2.generateRandom();
   const userToken = new UserToken(
     base64MasterKey,
     masterKeySalt,
-    encryptionKey,
     masterKeyEncryptionSalt,
     encryptionIV,
     userId

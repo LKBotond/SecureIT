@@ -35,7 +35,7 @@ class KDF {
     }
 
     //Hash it with SHA-256
-    const hashBuffer = await  self.crypto.subtle.digest("SHA-256", data);
+    const hashBuffer = await self.crypto.subtle.digest("SHA-256", data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray
       .map((byte) => byte.toString(16).padStart(2, "0"))
@@ -43,7 +43,7 @@ class KDF {
     return hashHex;
   }
 
-  async generateRandom(length) {
+  async generateRandom(length = 16) {
     const array = new Uint8Array(length);
     crypto.getRandomValues(array);
     return Array.from(array)

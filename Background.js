@@ -11,6 +11,7 @@ import {
   updateAndSaveRecords,
 } from "./logic/BackendWebscraping.js";
 import { loadLocal, loadSession } from "./storage/DataStorage.js";
+import { updateRecords } from "./logic/Update.js";
 
 const responseCodes = new ResponseCodes();
 
@@ -52,7 +53,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
       return true;
     case "delete":
-      deleteUser(message.susPass).then((result) => {
+      deleteUser(message.pass).then((result) => {
         if (result == responseCodes.allClear) {
           sendResponse({ success: true });
         } else {
@@ -64,6 +65,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       toggleAutolog().then((result) => {
         sendResponse({ status: result });
       });
+      return true;
+    case "update":
+      updateRecords(message.username, message.password, message.url).then(
+        (success) => {
+          sendResponse({ success });
+        });
       return true;
     default:
       console.warn("Unknown message action:", message.action);

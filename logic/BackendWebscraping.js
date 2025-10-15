@@ -26,30 +26,29 @@ export function checkForUrl(url, urlList) {
 
 export function requestScraping(port) {
   console.log("scraping for credentials");
-  console.log("port:", port);
   port.postMessage({ action: "scrape" });
 }
 
 export async function catchCredentials(response, sessionToken, url) {
-  const userName = response.userName;
+  const username = response.userName;
   const password = response.password;
-  const nameIv = await pbkdf2.generateRandom(16);
-  const passIv = await pbkdf2.generateRandom(16);
-  const passSalt = await pbkdf2.generateRandom(16);
+  const nameIv = await pbkdf2.generateRandom();
+  const passIv = await pbkdf2.generateRandom();
+  const passSalt = await pbkdf2.generateRandom();
 
   const masterKey = await session.decryptMasterKey(sessionToken);
   const encryptionKey = await pbkdf2.PBKDF2KeyGen(masterKey, passSalt);
-
-  const encryptedUser = await aesgcm.encryptString(
-    userName,
-    encryptionKey,
-    nameIv
-  );
   const encryptedPass = await aesgcm.encryptString(
     password,
     encryptionKey,
     passIv
   );
+  const encryptedUser = await aesgcm.encryptString(
+    username,
+    encryptionKey,
+    nameIv
+  );
+
   const storableUser = arrayBufferToBase64(encryptedUser);
   const storablePass = arrayBufferToBase64(encryptedPass);
   const credentialToken = new CredentialToken(
@@ -60,7 +59,6 @@ export async function catchCredentials(response, sessionToken, url) {
     storablePass,
     url
   );
-  console.log(credentialToken);
   return credentialToken;
 }
 export async function updateAndSaveRecords(urlList, userId, credentialToken) {
@@ -68,6 +66,7 @@ export async function updateAndSaveRecords(urlList, userId, credentialToken) {
   await saveLocally(userId, urlList);
 }
 export async function infill(port, sessionToken, credentialToken) {
+  console.log("Infilling Credentials");
   const masterKey = await session.decryptMasterKey(sessionToken);
   const encryptionKey = await pbkdf2.PBKDF2KeyGen(
     masterKey,

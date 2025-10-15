@@ -3,8 +3,6 @@ const User = {
   password: null,
   login: function (username, susPass) {
     const record = JSON.parse(sessionStorage.getItem(username));
-    console.log("Record is", record);
-    console.log("Suspect password is", susPass);
     if (record== susPass) { 
       console.log("Login successful!");
       return true;
@@ -45,7 +43,6 @@ document.addEventListener("DOMContentLoaded", function () {
       event.preventDefault();
       username = form.querySelector("#login").value;
       password = form.querySelector("#password").value;
-      console.log("form submitted with", username, password);
       if (current.login(username, password)) {
         window.location.href = "TestSuccess.html";
       } else {

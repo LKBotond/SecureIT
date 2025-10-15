@@ -49,8 +49,8 @@ document.querySelectorAll("button").forEach((button) => {
 
 function collectFormData() {
   let usernameAndPassword = {
-    Username: document.getElementById("username").value,
-    Password: document.getElementById("password").value,
+    username: document.getElementById("username").value,
+    password: document.getElementById("password").value,
   };
   return usernameAndPassword;
 }
